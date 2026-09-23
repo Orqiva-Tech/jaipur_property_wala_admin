@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Compass, Lock, Mail, AlertCircle, ArrowRight, ShieldCheck, KeyRound } from 'lucide-react';
+import { Building2, Lock, Mail, AlertCircle, ArrowRight, ShieldCheck, KeyRound } from 'lucide-react';
 import { adminService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -30,65 +30,61 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#050e0a] flex items-center justify-center p-4 relative overflow-hidden font-sans">
-      {/* Background ambient lighting */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gold-500/10 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="relative z-10 w-full max-w-md bg-[#0c1c15]/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 sm:p-10 border border-gold-500/40 space-y-6">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans text-slate-800 antialiased">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 p-8 sm:p-10 space-y-6">
         
         {/* Brand Crest */}
         <div className="text-center space-y-2">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gold-400 to-amber-600 text-forest-950 flex items-center justify-center mx-auto shadow-xl shadow-gold-500/20 border border-gold-300">
-            <Compass className="w-9 h-9 stroke-[2.5]" />
+          <div className="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center mx-auto shadow-md">
+            <Building2 className="w-6 h-6" />
           </div>
-          <h2 className="text-2xl font-bold font-editorial text-gold-300 tracking-wide">
-            JAIPUR PROPERTY WALA
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+            Jaipur Property Wala
           </h2>
-          <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-[10px] uppercase tracking-widest text-emerald-300 font-extrabold">
-            <ShieldCheck className="w-3.5 h-3.5 text-gold-400" />
-            <span>Executive ERP Gateway</span>
+          <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs text-slate-600 font-medium">
+            <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+            <span>Admin Management Console</span>
           </div>
         </div>
 
         {error && (
-          <div className="p-3.5 bg-red-950/80 text-red-300 rounded-xl text-xs flex items-center space-x-2 border border-red-500/50">
-            <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-400" />
+          <div className="p-3 bg-red-50 text-red-700 rounded-lg text-xs flex items-center space-x-2 border border-red-200">
+            <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-600" />
             <span>{error}</span>
           </div>
         )}
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-gold-300 mb-1">
-              Executive Email
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Admin Email
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-gold-400/60 absolute left-3 top-3.5" />
+              <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@jaipurpropertywala.in"
-                className="w-full pl-9 pr-3 py-2.5 bg-[#06110c] border border-gold-500/30 focus:border-gold-500 rounded-xl text-xs text-white placeholder-stone-600 focus:outline-none focus:ring-1 focus:ring-gold-500/50"
+                className="w-full pl-9 pr-3 py-2.5 bg-white border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none shadow-xs"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gold-300 mb-1">
-              Secure Passkey
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Password
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 text-gold-400/60 absolute left-3 top-3.5" />
+              <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-9 pr-3 py-2.5 bg-[#06110c] border border-gold-500/30 focus:border-gold-500 rounded-xl text-xs text-white placeholder-stone-600 focus:outline-none focus:ring-1 focus:ring-gold-500/50"
+                className="w-full pl-9 pr-3 py-2.5 bg-white border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none shadow-xs"
               />
             </div>
           </div>
@@ -96,13 +92,13 @@ export const Login: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-gold-500 via-gold-600 to-amber-600 text-forest-950 font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-gold-500/20 hover:scale-[1.01] transition-all flex items-center justify-center space-x-2 border border-gold-300"
+            className="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors flex items-center justify-center space-x-2 shadow-xs"
           >
             {loading ? (
-              <span>Verifying Authority...</span>
+              <span>Authenticating...</span>
             ) : (
               <>
-                <span>Enter Command Console</span>
+                <span>Sign In to Console</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
@@ -110,16 +106,16 @@ export const Login: React.FC = () => {
         </form>
 
         {/* Credentials Notice Box */}
-        <div className="p-3.5 bg-[#07130e] border border-gold-500/20 rounded-xl text-center space-y-1">
-          <div className="flex items-center justify-center space-x-1 text-[11px] font-bold text-gold-400">
-            <KeyRound className="w-3.5 h-3.5" />
+        <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-center space-y-1">
+          <div className="flex items-center justify-center space-x-1 text-xs font-semibold text-slate-700">
+            <KeyRound className="w-3.5 h-3.5 text-blue-600" />
             <span>Master Access Credentials</span>
           </div>
-          <span className="text-[11px] text-stone-300 block">
-            Email: <code className="font-mono text-emerald-400">admin@jaipurpropertywala.in</code>
+          <span className="text-[11px] text-slate-600 block">
+            Email: <code className="font-mono text-slate-900 font-semibold">admin@jaipurpropertywala.in</code>
           </span>
-          <span className="text-[11px] text-stone-300 block">
-            Password: <code className="font-mono text-emerald-400">Admin@JaipurPropertyWala2026</code>
+          <span className="text-[11px] text-slate-600 block">
+            Password: <code className="font-mono text-slate-900 font-semibold">Admin@JaipurPropertyWala2026</code>
           </span>
         </div>
 
@@ -128,9 +124,9 @@ export const Login: React.FC = () => {
             href="http://localhost:5180"
             target="_blank"
             rel="noreferrer"
-            className="text-xs font-semibold text-stone-400 hover:text-gold-300 transition-colors"
+            className="text-xs font-medium text-slate-500 hover:text-blue-600 transition-colors"
           >
-            ← View Public Client Website (Port 5180)
+            &larr; View Public Client Website (Port 5180)
           </a>
         </div>
 

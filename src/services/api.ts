@@ -44,7 +44,23 @@ export const propertyService = {
   update: (id: string, formData: FormData) => api.put(`/properties/${id}`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
-  delete: (id: string) => api.delete(`/properties/${id}`)
+  delete: (id: string) => api.delete(`/properties/${id}`),
+  uploadFile: (file: File) => {
+    const data = new FormData();
+    data.append('file', file);
+    return api.post('/properties/upload', data, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+  uploadMultipleFiles: (files: FileList | File[]) => {
+    const data = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      data.append('files', files[i]);
+    }
+    return api.post('/properties/upload-multiple', data, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  }
 };
 
 export const enquiryService = {
@@ -52,6 +68,7 @@ export const enquiryService = {
   getAll: (params?: Record<string, any>) => api.get('/enquiries', { params }),
   updateStatus: (id: string, data: { status?: string; note?: string }) => api.put(`/enquiries/${id}`, data),
   delete: (id: string) => api.delete(`/enquiries/${id}`),
+  deleteNote: (enquiryId: string, noteId: string) => api.delete(`/enquiries/${enquiryId}/notes/${noteId}`),
   exportCSV: () => `${API_BASE_URL}/enquiries/export`
 };
 

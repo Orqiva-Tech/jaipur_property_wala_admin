@@ -44,28 +44,35 @@ export const Settings: React.FC = () => {
 
   if (loading || !settings) {
     return (
-      <div className="p-8 bg-[#0c1a13] rounded-2xl border border-gold-500/20 animate-pulse">
-        <div className="h-8 bg-[#152e22] rounded w-1/4 mb-4" />
-        <div className="h-4 bg-[#152e22] rounded w-1/2" />
+      <div className="p-8 bg-white rounded-xl border border-slate-200 animate-pulse">
+        <div className="h-6 bg-slate-200 rounded w-1/4 mb-4" />
+        <div className="h-4 bg-slate-200 rounded w-1/2" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="relative overflow-hidden bg-gradient-to-r from-[#0c1c15] via-[#122b20] to-[#091710] p-6 sm:p-7 rounded-2xl border border-gold-500/30 shadow-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+    <div className="space-y-6 antialiased">
+      {/* Header Banner */}
+      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold font-editorial text-white tracking-wide">
+          <div className="flex items-center space-x-2 mb-1">
+            <span className="w-2 h-2 rounded-full bg-blue-600 inline-block" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-blue-600">
+              System Configuration
+            </span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
             Platform Settings & Office Data
           </h1>
-          <p className="text-xs text-stone-300">
-            Control phone numbers, office timings, corporate address, and header statistics across all public pages.
+          <p className="text-xs text-slate-500 mt-0.5 max-w-xl">
+            Configure contact helplines, official addresses, business hours, and trust badges displayed across all public website pages.
           </p>
         </div>
 
         {success && (
-          <div className="px-4 py-2 bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs font-bold rounded-xl flex items-center space-x-1.5">
-            <CheckCircle2 className="w-4 h-4" />
+          <div className="px-3.5 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-lg flex items-center space-x-1.5 shadow-xs">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
             <span>Settings Saved!</span>
           </div>
         )}
@@ -73,75 +80,75 @@ export const Settings: React.FC = () => {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Contact Info Card */}
-        <div className="bg-[#0c1a13] p-6 rounded-2xl border border-gold-500/20 shadow-xl space-y-4">
-          <h3 className="text-base font-bold font-editorial text-gold-300 border-b border-gold-500/20 pb-3">
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs space-y-4">
+          <h3 className="text-sm font-bold text-slate-900 border-b border-slate-200 pb-3">
             Primary Helpline & Communications
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-bold text-stone-300 mb-1">Helpline Phone *</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Helpline Phone *</label>
               <input
                 type="text"
                 required
                 value={settings.phone}
                 onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
-                className="w-full p-2.5 bg-[#08140f] border border-gold-500/30 rounded-lg text-xs text-white"
+                className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none shadow-xs"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-stone-300 mb-1">WhatsApp Direct *</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">WhatsApp Direct *</label>
               <input
                 type="text"
                 required
                 value={settings.whatsapp}
                 onChange={(e) => setSettings({ ...settings, whatsapp: e.target.value })}
-                className="w-full p-2.5 bg-[#08140f] border border-gold-500/30 rounded-lg text-xs text-white"
+                className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none shadow-xs"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-stone-300 mb-1">Official Email *</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Official Email *</label>
               <input
                 type="email"
                 required
                 value={settings.email}
                 onChange={(e) => setSettings({ ...settings, email: e.target.value })}
-                className="w-full p-2.5 bg-[#08140f] border border-gold-500/30 rounded-lg text-xs text-white"
+                className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none shadow-xs"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-stone-300 mb-1">Office Address</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Office Address</label>
               <input
                 type="text"
                 value={settings.address}
                 onChange={(e) => setSettings({ ...settings, address: e.target.value })}
-                className="w-full p-2.5 bg-[#08140f] border border-gold-500/30 rounded-lg text-xs text-white"
+                className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none shadow-xs"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-stone-300 mb-1">Office Timings</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Office Timings</label>
               <input
                 type="text"
                 value={settings.officeTimings}
                 onChange={(e) => setSettings({ ...settings, officeTimings: e.target.value })}
-                className="w-full p-2.5 bg-[#08140f] border border-gold-500/30 rounded-lg text-xs text-white"
+                className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none shadow-xs"
               />
             </div>
           </div>
         </div>
 
         {/* Corporate Trust Statistics */}
-        <div className="bg-[#0c1a13] p-6 rounded-2xl border border-gold-500/20 shadow-xl space-y-4">
-          <h3 className="text-base font-bold font-editorial text-gold-300 border-b border-gold-500/20 pb-3">
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs space-y-4">
+          <h3 className="text-sm font-bold text-slate-900 border-b border-slate-200 pb-3">
             Public Website Trust Statistics (Counter Bar)
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <div>
-              <label className="block text-xs font-bold text-stone-300 mb-1">Years Experience</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Years Experience</label>
               <input
                 type="text"
                 value={settings.stats.yearsExperience}
@@ -149,11 +156,11 @@ export const Settings: React.FC = () => {
                   ...settings,
                   stats: { ...settings.stats, yearsExperience: e.target.value }
                 })}
-                className="w-full p-2.5 bg-[#08140f] border border-gold-500/30 rounded-lg text-xs text-white"
+                className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none shadow-xs"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-stone-300 mb-1">Satisfied Families</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Satisfied Families</label>
               <input
                 type="text"
                 value={settings.stats.satisfiedClients}
@@ -161,11 +168,11 @@ export const Settings: React.FC = () => {
                   ...settings,
                   stats: { ...settings.stats, satisfiedClients: e.target.value }
                 })}
-                className="w-full p-2.5 bg-[#08140f] border border-gold-500/30 rounded-lg text-xs text-white"
+                className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none shadow-xs"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-stone-300 mb-1">JDA Plots Handed</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">JDA Plots Handed</label>
               <input
                 type="text"
                 value={settings.stats.jdaPlotsSold}
@@ -173,11 +180,11 @@ export const Settings: React.FC = () => {
                   ...settings,
                   stats: { ...settings.stats, jdaPlotsSold: e.target.value }
                 })}
-                className="w-full p-2.5 bg-[#08140f] border border-gold-500/30 rounded-lg text-xs text-white"
+                className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none shadow-xs"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-stone-300 mb-1">Bank Loan Ratio</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Bank Loan Ratio</label>
               <input
                 type="text"
                 value={settings.stats.bankLoanApproval}
@@ -185,7 +192,7 @@ export const Settings: React.FC = () => {
                   ...settings,
                   stats: { ...settings.stats, bankLoanApproval: e.target.value }
                 })}
-                className="w-full p-2.5 bg-[#08140f] border border-gold-500/30 rounded-lg text-xs text-white"
+                className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none shadow-xs"
               />
             </div>
           </div>
@@ -195,7 +202,7 @@ export const Settings: React.FC = () => {
           <button
             type="submit"
             disabled={saving}
-            className="px-6 py-3 rounded-xl bg-gradient-to-r from-gold-500 via-gold-600 to-amber-600 text-forest-950 font-extrabold text-xs uppercase tracking-wider shadow-lg hover:shadow-gold-500/20 flex items-center space-x-2"
+            className="px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs transition-colors flex items-center space-x-2"
           >
             <Save className="w-4 h-4" />
             <span>{saving ? 'Saving...' : 'Update Settings'}</span>

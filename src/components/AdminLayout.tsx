@@ -12,7 +12,6 @@ import {
   LogOut,
   ExternalLink,
   ShieldCheck,
-  Compass,
   Globe2,
   MapPin
 } from 'lucide-react';
@@ -23,8 +22,8 @@ export const AdminLayout: React.FC = () => {
   const location = useLocation();
 
   const navItems = [
-    { name: 'Executive Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    { name: 'Property Inventory', path: '/properties', icon: Building2, badge: 'Multi-City' },
+    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Properties', path: '/properties', icon: Building2, badge: 'Inventory' },
     { name: 'Locations & Hubs', path: '/locations', icon: MapPin, badge: 'Cities' },
     { name: 'Leads & Enquiries', path: '/leads', icon: Users },
     { name: 'Media Gallery', path: '/gallery', icon: Image },
@@ -37,44 +36,43 @@ export const AdminLayout: React.FC = () => {
   const isActive = (path: string) => location.pathname === path || (path === '/dashboard' && location.pathname === '/');
 
   return (
-    <div className="min-h-screen bg-[#07120e] flex flex-col md:flex-row font-sans text-stone-200">
+    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans text-slate-800 antialiased">
       {/* Sidebar */}
-      <aside className="w-full md:w-72 bg-gradient-to-b from-[#06110c] via-[#091811] to-[#040b07] text-white flex-shrink-0 flex flex-col justify-between border-r border-gold-500/20 shadow-2xl">
+      <aside className="w-full md:w-64 bg-white border-r border-slate-200 flex-shrink-0 flex flex-col justify-between shadow-xs">
         <div>
           {/* Logo & Header */}
-          <div className="p-6 border-b border-gold-500/20 flex items-center justify-between">
+          <div className="p-5 border-b border-slate-200 flex items-center justify-between">
             <Link to="/dashboard" className="flex items-center space-x-3 group">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gold-400 to-amber-600 flex items-center justify-center text-forest-950 font-bold shadow-lg shadow-gold-500/20 group-hover:scale-105 transition-transform">
-                <Compass className="w-6 h-6 stroke-[2.5]" />
+              <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-xs group-hover:bg-blue-700 transition-colors">
+                <Building2 className="w-5 h-5" />
               </div>
               <div>
-                <span className="font-extrabold text-sm font-editorial text-gold-300 tracking-wider block">
-                  JAIPUR PROPERTY WALA
+                <span className="font-bold text-sm text-slate-900 tracking-tight block">
+                  Jaipur Property Wala
                 </span>
-                <span className="text-[10px] text-emerald-400 font-bold tracking-widest uppercase flex items-center space-x-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
-                  <span>Executive ERP Portal</span>
+                <span className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse inline-block" />
+                  <span>Admin Console</span>
                 </span>
               </div>
             </Link>
           </div>
 
           {/* Active Cities Indicator Strip */}
-          <div className="mx-4 my-3 px-3 py-2 rounded-xl bg-[#0e241a]/90 border border-gold-500/20 flex items-center justify-between text-[11px]">
-            <div className="flex items-center space-x-1.5 text-stone-300 font-semibold">
-              <Globe2 className="w-3.5 h-3.5 text-gold-400" />
-              <span>Active Markets</span>
+          <div className="mx-3 my-2.5 px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between text-xs text-slate-600">
+            <div className="flex items-center space-x-1.5 font-medium">
+              <Globe2 className="w-3.5 h-3.5 text-blue-600" />
+              <span>Markets:</span>
             </div>
-            <div className="flex items-center space-x-1 text-[10px] font-bold">
-              <span className="text-amber-400">JAI</span> •
-              <span className="text-emerald-400">AJM</span> •
-              <span className="text-cyan-400">KSG</span> •
-              <span className="text-purple-400">BOM</span>
+            <div className="flex items-center space-x-1.5 text-[11px] font-semibold text-slate-700">
+              <span className="px-1.5 py-0.5 rounded bg-white border border-slate-200">Jaipur</span>
+              <span className="px-1.5 py-0.5 rounded bg-white border border-slate-200">Ajmer</span>
+              <span className="px-1.5 py-0.5 rounded bg-white border border-slate-200">Mumbai</span>
             </div>
           </div>
 
           {/* Navigation Links */}
-          <nav className="p-3 space-y-1.5">
+          <nav className="p-3 space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
@@ -82,20 +80,22 @@ export const AdminLayout: React.FC = () => {
                 <Link
                   key={item.name}
                   to={item.path}
-                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all ${
-                    active
-                      ? 'bg-gradient-to-r from-gold-500 to-amber-600 text-forest-950 shadow-lg shadow-gold-500/20 font-extrabold'
-                      : 'text-stone-300 hover:bg-[#11291d] hover:text-gold-200'
-                  }`}
+                  className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-colors ${active
+                    ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-100 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+                    }`}
                 >
-                  <div className="flex items-center space-x-3">
-                    <Icon className={`w-4 h-4 ${active ? 'text-forest-950 stroke-[2.5]' : 'text-gold-400/80'}`} />
+                  <div className="flex items-center space-x-2.5">
+                    <Icon className={`w-4 h-4 ${active ? 'text-blue-600' : 'text-slate-400'}`} />
                     <span>{item.name}</span>
                   </div>
                   {item.badge && (
-                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full uppercase font-black ${
-                      active ? 'bg-forest-950 text-gold-300' : 'bg-emerald-950 text-emerald-400 border border-emerald-500/40'
-                    }`}>
+                    <span
+                      className={`text-[10px] px-2 py-0.5 rounded-md font-semibold ${active
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-slate-100 text-slate-600 border border-slate-200'
+                        }`}
+                    >
                       {item.badge}
                     </span>
                   )}
@@ -106,32 +106,22 @@ export const AdminLayout: React.FC = () => {
         </div>
 
         {/* User Info & Footer */}
-        <div className="p-4 border-t border-gold-500/20 space-y-3 bg-[#050e0a]">
-          <div className="flex items-center justify-between px-2 text-xs">
-            <div>
-              <span className="text-stone-400 block text-[10px] uppercase font-bold tracking-wider">Super Administrator</span>
-              <span className="font-bold text-gold-300 truncate max-w-[150px] block text-xs">
-                {adminUser?.email || 'admin@jaipurpropertywala.in'}
-              </span>
-            </div>
-            <span className="bg-emerald-950 text-emerald-300 border border-emerald-500/40 text-[10px] font-bold px-2 py-0.5 rounded uppercase">
-              {adminUser?.role || 'Root'}
-            </span>
-          </div>
+        <div className="p-4 border-t border-slate-200 bg-slate-50 space-y-3">
 
-          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/5">
+
+          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200">
             <a
               href="http://localhost:5180"
               target="_blank"
               rel="noreferrer"
-              className="flex items-center justify-center space-x-1.5 py-2 rounded-lg bg-[#11291d] hover:bg-[#183929] text-stone-200 hover:text-gold-300 text-[11px] font-bold border border-gold-500/20 transition-all"
+              className="flex items-center justify-center space-x-1.5 py-2 rounded-lg bg-white hover:bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200 shadow-xs transition-colors"
             >
-              <ExternalLink className="w-3.5 h-3.5 text-gold-400" />
+              <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
               <span>Live Site</span>
             </a>
             <button
               onClick={logout}
-              className="flex items-center justify-center space-x-1.5 py-2 rounded-lg bg-red-950/40 hover:bg-red-900/80 text-red-300 hover:text-white text-[11px] font-bold border border-red-500/30 transition-all"
+              className="flex items-center justify-center space-x-1.5 py-2 rounded-lg bg-white hover:bg-red-50 text-red-600 text-xs font-medium border border-red-200 shadow-xs transition-colors"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>Logout</span>
@@ -141,38 +131,24 @@ export const AdminLayout: React.FC = () => {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto max-h-screen bg-[#07130e]">
-        {/* Luxury Top Bar */}
-        <header className="bg-[#091811] border-b border-gold-500/20 px-6 py-4 flex items-center justify-between shadow-xl sticky top-0 z-30 backdrop-blur-md">
+      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto max-h-screen bg-slate-50">
+        {/* Top Bar */}
+        <header className="bg-white border-b border-slate-200 px-6 py-3.5 flex items-center justify-between shadow-xs sticky top-0 z-30">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-lg bg-gold-500/10 border border-gold-500/30 flex items-center justify-center text-gold-400">
+            <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
               <ShieldCheck className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-xs font-extrabold text-gold-300 tracking-wider uppercase block">
-                Executive Command Center
+              <span className="text-xs font-bold text-slate-900 tracking-tight block">
+                Admin Management Console
               </span>
-              <span className="text-[11px] text-stone-400">
-                Multi-City Property Management ERP • Jaipur, Ajmer, Kishangarh, Mumbai
+              <span className="text-[11px] text-slate-500 hidden sm:inline">
+                Direct management for properties, enquiries, candidates, and market listings
               </span>
             </div>
           </div>
 
-          <div className="flex items-center space-x-3">
-            <div className="hidden sm:flex items-center space-x-2 bg-[#050e0a] border border-gold-500/20 px-3 py-1.5 rounded-lg text-xs">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-stone-300 font-mono text-[11px]">API Port 5050 Online</span>
-            </div>
-            <a
-              href="http://localhost:5180"
-              target="_blank"
-              rel="noreferrer"
-              className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-gold-500 to-amber-600 text-forest-950 text-xs font-bold flex items-center space-x-1 shadow hover:scale-105 transition-transform"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">View Public Website</span>
-            </a>
-          </div>
+
         </header>
 
         {/* Dynamic Route Content */}
