@@ -1,24 +1,29 @@
 import axios from 'axios';
 
-// Resolve backend URL safely: NEVER allow localhost on live deployed domains (e.g. dobhi.in, vercel.app)
+// Resolve backend URL safely: ALWAYS use live Render production backend for production builds and live domains
+const LIVE_RENDER_API = 'https://jaipur-property-wala-backend.onrender.com/api';
+
 const getApiBaseUrl = (): string => {
-  const isBrowser = typeof window !== 'undefined';
-  const isLocalHost = isBrowser && (
-    window.location.hostname === 'localhost' || 
-    window.location.hostname === '127.0.0.1' ||
-    window.location.hostname.startsWith('192.168.')
-  );
-
-  const rawEnv = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL;
-
-  // On production/live domains, reject any localhost url from env
-  if (!isLocalHost && rawEnv && (rawEnv.includes('localhost') || rawEnv.includes('127.0.0.1'))) {
-    console.warn('[API Config] Live domain detected. Overriding localhost env with Render production backend.');
-    return 'https://jaipur-property-wala-backend.onrender.com/api';
+  // If Vite is in production build mode (Vercel deployment or npm run build), ALWAYS use live Render backend
+  if (import.meta.env.PROD) {
+    return LIVE_RENDER_API;
   }
 
-  const resolved = rawEnv || 'https://jaipur-property-wala-backend.onrender.com';
-  const clean = resolved.replace(/\/api\/?$/, '').replace(/\/$/, '');
+  // If running in browser on any non-localhost domain, ALWAYS use live Render backend
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host !== 'localhost' && host !== '127.0.0.1' && !host.startsWith('192.168.')) {
+      return LIVE_RENDER_API;
+    }
+  }
+
+  // Local development fallback
+  const rawEnv = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL;
+  if (!rawEnv || rawEnv.includes('localhost:5050')) {
+    return LIVE_RENDER_API;
+  }
+
+  const clean = rawEnv.replace(/\/api\/?$/, '').replace(/\/$/, '');
   return `${clean}/api`;
 };
 
