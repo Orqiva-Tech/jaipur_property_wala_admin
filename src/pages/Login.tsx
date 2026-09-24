@@ -32,7 +32,7 @@ export const Login: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans text-slate-800 antialiased">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 p-8 sm:p-10 space-y-6">
-        
+
         {/* Brand Crest */}
         <div className="text-center space-y-2">
           <img
@@ -108,29 +108,9 @@ export const Login: React.FC = () => {
         </form>
 
         {/* Credentials Notice Box */}
-        <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-center space-y-1">
-          <div className="flex items-center justify-center space-x-1 text-xs font-semibold text-slate-700">
-            <KeyRound className="w-3.5 h-3.5 text-blue-600" />
-            <span>Master Access Credentials</span>
-          </div>
-          <span className="text-[11px] text-slate-600 block">
-            Email: <code className="font-mono text-slate-900 font-semibold">admin@jaipurpropertywala.in</code>
-          </span>
-          <span className="text-[11px] text-slate-600 block">
-            Password: <code className="font-mono text-slate-900 font-semibold">Admin@JaipurPropertyWala2026</code>
-          </span>
-        </div>
 
-        <div className="text-center pt-1">
-          <a
-            href={import.meta.env.VITE_PUBLIC_WEBSITE_URL || 'https://property.dobhi.in'}
-            target="_blank"
-            rel="noreferrer"
-            className="text-xs font-medium text-slate-500 hover:text-blue-600 transition-colors"
-          >
-            &larr; View Public Website
-          </a>
-        </div>
+
+
 
       </div>
     </div>
