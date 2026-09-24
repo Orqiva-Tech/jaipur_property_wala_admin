@@ -1,34 +1,8 @@
 import axios from 'axios';
 
-// Resolve backend URL safely: ALWAYS use live Render production backend for production builds and live domains
-const LIVE_RENDER_API = 'https://jaipur-property-wala-backend.onrender.com/api';
-
-const getApiBaseUrl = (): string => {
-  // If Vite is in production build mode (Vercel deployment or npm run build), ALWAYS use live Render backend
-  if (import.meta.env.PROD) {
-    return LIVE_RENDER_API;
-  }
-
-  // If running in browser on any non-localhost domain, ALWAYS use live Render backend
-  if (typeof window !== 'undefined') {
-    const host = window.location.hostname;
-    if (host !== 'localhost' && host !== '127.0.0.1' && !host.startsWith('192.168.')) {
-      return LIVE_RENDER_API;
-    }
-  }
-
-  // Local development fallback
-  const rawEnv = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL;
-  if (!rawEnv || rawEnv.includes('localhost:5050')) {
-    return LIVE_RENDER_API;
-  }
-
-  const clean = rawEnv.replace(/\/api\/?$/, '').replace(/\/$/, '');
-  return `${clean}/api`;
-};
-
-export const API_BASE_URL = getApiBaseUrl();
-export const BACKEND_URL = API_BASE_URL.replace(/\/api\/?$/, '');
+// Unconditionally use live Render production backend
+export const BACKEND_URL = 'https://jaipur-property-wala-backend.onrender.com';
+export const API_BASE_URL = 'https://jaipur-property-wala-backend.onrender.com/api';
 
 /**
  * Format image URL: Cloudinary/External URLs remain untouched,
