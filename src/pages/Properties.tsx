@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, Search, X, Check, Building2, Filter, AlertCircle, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
-import { propertyService, locationService } from '../services/api';
+import { propertyService, locationService, formatImageUrl } from '../services/api';
 import { Property, LocationItem } from '../types';
 
 export const Properties: React.FC = () => {
@@ -423,7 +423,7 @@ export const Properties: React.FC = () => {
                       <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200">
                         {p.images && p.images.length > 0 ? (
                           <img
-                            src={p.images[0]}
+                            src={formatImageUrl(p.images[0])}
                             alt=""
                             className="w-full h-full object-cover"
                           />
@@ -810,7 +810,7 @@ export const Properties: React.FC = () => {
                           />
                           {hl.image ? (
                             <img
-                              src={hl.image}
+                              src={formatImageUrl(hl.image)}
                               alt={hl.title}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                               onError={(e) => {
@@ -1073,7 +1073,7 @@ export const Properties: React.FC = () => {
                       >
                         <div className="relative rounded-lg overflow-hidden bg-slate-100 aspect-video border border-slate-200">
                           <img
-                            src={imgUrl}
+                            src={formatImageUrl(imgUrl)}
                             alt=""
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             onError={(e) => {

@@ -121,12 +121,12 @@ export const Login: React.FC = () => {
 
         <div className="text-center pt-1">
           <a
-            href="http://localhost:5180"
+            href={import.meta.env.VITE_PUBLIC_WEBSITE_URL || 'https://property.dobhi.in'}
             target="_blank"
             rel="noreferrer"
             className="text-xs font-medium text-slate-500 hover:text-blue-600 transition-colors"
           >
-            &larr; View Public Client Website (Port 5180)
+            &larr; View Public Website
           </a>
         </div>
 

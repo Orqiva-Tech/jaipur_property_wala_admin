@@ -1,6 +1,19 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
+// Resolve backend URL from environment variables or fallback to live Render production URL
+const RAW_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'https://jaipur-property-wala-backend.onrender.com';
+export const BACKEND_URL = RAW_URL.replace(/\/api\/?$/, '').replace(/\/$/, '');
+export const API_BASE_URL = RAW_URL.endsWith('/api') ? RAW_URL : `${BACKEND_URL}/api`;
+
+/**
+ * Format image URL: Cloudinary/External URLs remain untouched,
+ * relative upload paths are prefixed with the backend URL.
+ */
+export const formatImageUrl = (url?: string): string => {
+  if (!url) return 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return `${BACKEND_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+};
 
 const api = axios.create({
   baseURL: API_BASE_URL,
