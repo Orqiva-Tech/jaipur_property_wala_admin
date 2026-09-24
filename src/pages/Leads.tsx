@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Download, Trash2, MessageSquare, Filter, X, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Search, Download, Trash2, MessageSquare, Filter, X, CheckCircle2, AlertCircle, MoreVertical, Eye } from 'lucide-react';
 import { enquiryService } from '../services/api';
 import { Enquiry } from '../types';
 
 export const Leads: React.FC = () => {
+  const navigate = useNavigate();
   const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
   const [activeNoteModal, setActiveNoteModal] = useState<Enquiry | null>(null);
   const [noteText, setNoteText] = useState('');
   const [deleteConfirmLead, setDeleteConfirmLead] = useState<Enquiry | null>(null);
@@ -214,7 +217,14 @@ export const Leads: React.FC = () => {
                 paginatedLeads.map((lead) => (
                   <tr key={lead._id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="p-4 font-semibold text-slate-900">
-                      <span className="block text-sm font-bold text-slate-900">{lead.name}</span>
+                      <Link
+                        to={`/leads/${lead._id}`}
+                        state={{ lead }}
+                        className="block text-sm font-bold text-slate-900 hover:text-blue-600 transition-colors"
+                        title="Click to view full lead details"
+                      >
+                        {lead.name}
+                      </Link>
                       {lead.email && <span className="text-[11px] text-slate-500 font-normal">{lead.email}</span>}
                     </td>
                     <td className="p-4">
@@ -264,13 +274,68 @@ export const Leads: React.FC = () => {
                       </button>
                     </td>
                     <td className="p-4 text-right">
-                      <button
-                        onClick={() => setDeleteConfirmLead(lead)}
-                        className="p-1.5 rounded-md bg-red-50 hover:bg-red-100 text-red-600 transition-colors border border-red-200"
-                        title="Delete Lead"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="relative inline-block text-left">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveDropdownId(activeDropdownId === lead._id ? null : lead._id);
+                          }}
+                          className={`p-1.5 rounded-lg border transition-all ${
+                            activeDropdownId === lead._id
+                              ? 'bg-slate-200 text-slate-900 border-slate-300'
+                              : 'bg-white hover:bg-slate-100 text-slate-600 border-slate-200 hover:text-slate-900 shadow-2xs'
+                          }`}
+                          title="Actions menu"
+                        >
+                          <MoreVertical className="w-4 h-4" />
+                        </button>
+
+                        {/* Three-dot Dropdown Menu */}
+                        {activeDropdownId === lead._id && (
+                          <>
+                            {/* Backdrop to close on click outside */}
+                            <div
+                              className="fixed inset-0 z-20 cursor-default"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveDropdownId(null);
+                              }}
+                            />
+                            <div
+                              className="absolute right-0 mt-1.5 w-40 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-30 animate-in fade-in zoom-in-95 duration-100 text-left"
+                            >
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveDropdownId(null);
+                                  navigate(`/leads/${lead._id}`, { state: { lead } });
+                                }}
+                                className="w-full px-3 py-2 text-xs font-semibold text-slate-700 hover:text-blue-600 hover:bg-blue-50 flex items-center space-x-2 transition-colors"
+                              >
+                                <Eye className="w-3.5 h-3.5 text-blue-600" />
+                                <span>View Details</span>
+                              </button>
+
+                              <div className="my-1 border-t border-slate-100" />
+
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveDropdownId(null);
+                                  setDeleteConfirmLead(lead);
+                                }}
+                                className="w-full px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center space-x-2 transition-colors"
+                              >
+                                <Trash2 className="w-3.5 h-3.5 text-red-600" />
+                                <span>Delete Lead</span>
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))

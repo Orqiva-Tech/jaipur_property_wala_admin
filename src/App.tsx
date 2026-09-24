@@ -5,6 +5,7 @@ import { AdminLayout } from './components/AdminLayout';
 import { Dashboard } from './pages/Dashboard';
 import { Properties } from './pages/Properties';
 import { Leads } from './pages/Leads';
+import { LeadDetail } from './pages/LeadDetail';
 import { Gallery } from './pages/Gallery';
 import { Careers } from './pages/Careers';
 import { Applications } from './pages/Applications';
@@ -57,6 +58,7 @@ export const App: React.FC = () => {
             <Route path="properties" element={<Properties />} />
             <Route path="locations" element={<Locations />} />
             <Route path="leads" element={<Leads />} />
+            <Route path="leads/:id" element={<LeadDetail />} />
             <Route path="gallery" element={<Gallery />} />
             <Route path="careers" element={<Careers />} />
             <Route path="applications" element={<Applications />} />

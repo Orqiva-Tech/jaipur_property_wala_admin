@@ -53,7 +53,10 @@ export const AdminLayout: React.FC = () => {
     };
   }, [isMobileMenuOpen]);
 
-  const isActive = (path: string) => location.pathname === path || (path === '/dashboard' && location.pathname === '/');
+  const isActive = (path: string) =>
+    location.pathname === path ||
+    (path === '/dashboard' && location.pathname === '/') ||
+    (path === '/leads' && location.pathname.startsWith('/leads'));
 
   const renderNavLinks = () => (
     <nav className="p-3 space-y-1">

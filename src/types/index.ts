@@ -52,11 +52,14 @@ export interface Enquiry {
   phone: string;
   email?: string;
   interestedProperty?: string;
+  propertyId?: any;
   preferredLocation?: string;
   budget?: string;
   message?: string;
+  source?: string;
   status: 'New' | 'Contacted' | 'Site Visit Scheduled' | 'Negotiation' | 'Closed' | 'Archived';
   internalNotes: {
+    _id?: string;
     note: string;
     author: string;
     date: string;

@@ -78,6 +78,7 @@ export const propertyService = {
 export const enquiryService = {
   create: (data: Record<string, any>) => api.post('/enquiries', data),
   getAll: (params?: Record<string, any>) => api.get('/enquiries', { params }),
+  getById: (id: string) => api.get(`/enquiries/${id}`),
   updateStatus: (id: string, data: { status?: string; note?: string }) => api.put(`/enquiries/${id}`, data),
   delete: (id: string) => api.delete(`/enquiries/${id}`),
   deleteNote: (enquiryId: string, noteId: string) => api.delete(`/enquiries/${enquiryId}/notes/${noteId}`),
