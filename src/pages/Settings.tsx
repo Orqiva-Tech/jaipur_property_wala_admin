@@ -54,7 +54,7 @@ export const Settings: React.FC = () => {
   return (
     <div className="space-y-6 antialiased">
       {/* Header Banner */}
-      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-2 mb-1">
             <span className="w-2 h-2 rounded-full bg-blue-600 inline-block" />
@@ -80,7 +80,7 @@ export const Settings: React.FC = () => {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Brand & Logo Card */}
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs space-y-4">
+        <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-xs space-y-4">
           <h3 className="text-sm font-bold text-slate-900 border-b border-slate-200 pb-3 flex items-center justify-between">
             <span>Brand Identity & Logo</span>
             <span className="text-[11px] font-normal text-slate-500">Stored on Cloudinary CDN</span>
@@ -107,7 +107,7 @@ export const Settings: React.FC = () => {
         </div>
 
         {/* Contact Info Card */}
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs space-y-4">
+        <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-xs space-y-4">
           <h3 className="text-sm font-bold text-slate-900 border-b border-slate-200 pb-3">
             Primary Helpline & Communications
           </h3>
@@ -168,12 +168,12 @@ export const Settings: React.FC = () => {
         </div>
 
         {/* Corporate Trust Statistics */}
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs space-y-4">
+        <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-xs space-y-4">
           <h3 className="text-sm font-bold text-slate-900 border-b border-slate-200 pb-3">
             Public Website Trust Statistics (Counter Bar)
           </h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">Years Experience</label>
               <input
@@ -229,7 +229,7 @@ export const Settings: React.FC = () => {
           <button
             type="submit"
             disabled={saving}
-            className="px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs transition-colors flex items-center space-x-2"
+            className="w-full sm:w-auto justify-center px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs transition-colors flex items-center space-x-2"
           >
             <Save className="w-4 h-4" />
             <span>{saving ? 'Saving...' : 'Update Settings'}</span>

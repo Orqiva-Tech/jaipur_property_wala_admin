@@ -117,7 +117,7 @@ export const Gallery: React.FC = () => {
       )}
 
       {/* Header Banner */}
-      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-2 mb-1">
             <span className="w-2 h-2 rounded-full bg-blue-600 inline-block" />
@@ -138,7 +138,7 @@ export const Gallery: React.FC = () => {
             setErrorMessage(null);
             setIsModalOpen(true);
           }}
-          className="px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors flex items-center space-x-1.5 shadow-xs shrink-0"
+          className="w-full sm:w-auto justify-center px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors flex items-center space-x-1.5 shadow-xs shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>Upload Media Item</span>
@@ -225,8 +225,8 @@ export const Gallery: React.FC = () => {
 
       {/* Upload Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in">
-          <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
+          <div className="relative w-full max-w-lg bg-white rounded-xl sm:rounded-2xl shadow-xl overflow-hidden border border-slate-200">
             <div className="p-5 bg-white border-b border-slate-200 flex justify-between items-center">
               <h3 className="text-base font-bold text-slate-900">
                 Upload Media Item
