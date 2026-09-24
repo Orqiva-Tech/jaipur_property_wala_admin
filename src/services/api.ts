@@ -1,9 +1,29 @@
 import axios from 'axios';
 
-// Resolve backend URL from environment variables or fallback to live Render production URL
-const RAW_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'https://jaipur-property-wala-backend.onrender.com';
-export const BACKEND_URL = RAW_URL.replace(/\/api\/?$/, '').replace(/\/$/, '');
-export const API_BASE_URL = RAW_URL.endsWith('/api') ? RAW_URL : `${BACKEND_URL}/api`;
+// Resolve backend URL safely: NEVER allow localhost on live deployed domains (e.g. dobhi.in, vercel.app)
+const getApiBaseUrl = (): string => {
+  const isBrowser = typeof window !== 'undefined';
+  const isLocalHost = isBrowser && (
+    window.location.hostname === 'localhost' || 
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname.startsWith('192.168.')
+  );
+
+  const rawEnv = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL;
+
+  // On production/live domains, reject any localhost url from env
+  if (!isLocalHost && rawEnv && (rawEnv.includes('localhost') || rawEnv.includes('127.0.0.1'))) {
+    console.warn('[API Config] Live domain detected. Overriding localhost env with Render production backend.');
+    return 'https://jaipur-property-wala-backend.onrender.com/api';
+  }
+
+  const resolved = rawEnv || 'https://jaipur-property-wala-backend.onrender.com';
+  const clean = resolved.replace(/\/api\/?$/, '').replace(/\/$/, '');
+  return `${clean}/api`;
+};
+
+export const API_BASE_URL = getApiBaseUrl();
+export const BACKEND_URL = API_BASE_URL.replace(/\/api\/?$/, '');
 
 /**
  * Format image URL: Cloudinary/External URLs remain untouched,
