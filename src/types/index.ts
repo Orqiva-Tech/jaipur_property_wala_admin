@@ -132,6 +132,7 @@ export interface Blog {
 
 export interface WebsiteSettings {
   companyName: string;
+  logoUrl?: string;
   tagline: string;
   phone: string;
   alternatePhone: string;

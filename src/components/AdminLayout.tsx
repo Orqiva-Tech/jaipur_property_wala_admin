@@ -43,9 +43,11 @@ export const AdminLayout: React.FC = () => {
           {/* Logo & Header */}
           <div className="p-5 border-b border-slate-200 flex items-center justify-between">
             <Link to="/dashboard" className="flex items-center space-x-3 group">
-              <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-xs group-hover:bg-blue-700 transition-colors">
-                <Building2 className="w-5 h-5" />
-              </div>
+              <img
+                src="/logo.png"
+                alt="Jaipur Property Wala Logo"
+                className="w-10 h-10 rounded-full border border-slate-300 shadow-xs object-cover group-hover:scale-105 transition-transform"
+              />
               <div>
                 <span className="font-bold text-sm text-slate-900 tracking-tight block">
                   Jaipur Property Wala

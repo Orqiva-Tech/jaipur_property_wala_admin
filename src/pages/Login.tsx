@@ -35,9 +35,11 @@ export const Login: React.FC = () => {
         
         {/* Brand Crest */}
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center mx-auto shadow-md">
-            <Building2 className="w-6 h-6" />
-          </div>
+          <img
+            src="/logo.png"
+            alt="Jaipur Property Wala Logo"
+            className="w-16 h-16 rounded-full border-2 border-slate-300 shadow-md mx-auto object-cover"
+          />
           <h2 className="text-xl font-bold text-slate-900 tracking-tight">
             Jaipur Property Wala
           </h2>

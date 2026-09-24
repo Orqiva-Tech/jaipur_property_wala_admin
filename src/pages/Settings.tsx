@@ -79,6 +79,33 @@ export const Settings: React.FC = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Brand & Logo Card */}
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs space-y-4">
+          <h3 className="text-sm font-bold text-slate-900 border-b border-slate-200 pb-3 flex items-center justify-between">
+            <span>Brand Identity & Logo</span>
+            <span className="text-[11px] font-normal text-slate-500">Stored on Cloudinary CDN</span>
+          </h3>
+
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            <img 
+              src={settings.logoUrl || '/logo.png'} 
+              alt="Brand Logo" 
+              className="w-20 h-20 rounded-full border-2 border-slate-300 shadow-md object-cover flex-shrink-0"
+            />
+            <div className="flex-1 w-full space-y-1">
+              <label className="block text-xs font-semibold text-slate-700">Official Brand Logo URL (Cloudinary)</label>
+              <input
+                type="text"
+                value={settings.logoUrl || ''}
+                onChange={(e) => setSettings({ ...settings, logoUrl: e.target.value })}
+                placeholder="https://res.cloudinary.com/..."
+                className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none shadow-xs font-mono"
+              />
+              <p className="text-[11px] text-slate-500">This logo is displayed in headers, footers, favicons, and admin portals.</p>
+            </div>
+          </div>
+        </div>
+
         {/* Contact Info Card */}
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs space-y-4">
           <h3 className="text-sm font-bold text-slate-900 border-b border-slate-200 pb-3">
