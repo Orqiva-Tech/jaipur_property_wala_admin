@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Trash2, Image, Play, MapPin, Filter, Check, AlertCircle, X } from 'lucide-react';
+import { Plus, Trash2, Image, Play, MapPin, Filter, Check, AlertCircle, X, Upload } from 'lucide-react';
 import { galleryService, locationService } from '../services/api';
 import { GalleryItem, LocationItem } from '../types';
 
@@ -21,6 +21,11 @@ export const Gallery: React.FC = () => {
   const [projectName, setProjectName] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const itemsPerPage = 9;
+  const totalPages = Math.ceil(items.length / itemsPerPage) || 1;
+  const paginatedItems = items.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const fetchItems = async () => {
     setLoading(true);
@@ -179,47 +184,92 @@ export const Gallery: React.FC = () => {
           <div className="text-xs text-slate-400">Upload new construction pictures or site visit photos using the button above.</div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-          {items.map((item) => {
-            const src = item.mediaUrl.startsWith('http') ? item.mediaUrl : item.mediaUrl;
-            return (
-              <div key={item._id} className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all group">
-                <div className="relative aspect-[4/3] bg-slate-100 overflow-hidden">
-                  {item.mediaType === 'video' ? (
-                    <div className="w-full h-full flex items-center justify-center bg-slate-900 text-white">
-                      <Play className="w-8 h-8 text-blue-400" />
-                    </div>
-                  ) : (
-                    <img src={src} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                  )}
-                  <span className="absolute top-2 left-2 bg-slate-900/80 text-white text-[10px] font-semibold px-2 py-0.5 rounded shadow-xs">
-                    {item.category}
-                  </span>
-                  {item.location && (
-                    <span className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-xs text-slate-800 text-[10px] font-medium px-2 py-0.5 rounded shadow-xs flex items-center space-x-1">
-                      <MapPin className="w-3 h-3 text-blue-600" />
-                      <span>{item.location}</span>
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+            {paginatedItems.map((item) => {
+              const src = item.mediaUrl.startsWith('http') ? item.mediaUrl : item.mediaUrl;
+              return (
+                <div key={item._id} className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all group">
+                  <div className="relative aspect-[4/3] bg-slate-100 overflow-hidden">
+                    {item.mediaType === 'video' ? (
+                      <div className="w-full h-full flex items-center justify-center bg-slate-900 text-white">
+                        <Play className="w-8 h-8 text-blue-400" />
+                      </div>
+                    ) : (
+                      <img src={src} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    )}
+                    <span className="absolute top-2 left-2 bg-slate-900/80 text-white text-[10px] font-semibold px-2 py-0.5 rounded shadow-xs">
+                      {item.category}
                     </span>
-                  )}
-                </div>
+                    {item.location && (
+                      <span className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-xs text-slate-800 text-[10px] font-medium px-2 py-0.5 rounded shadow-xs flex items-center space-x-1">
+                        <MapPin className="w-3 h-3 text-blue-600" />
+                        <span>{item.location}</span>
+                      </span>
+                    )}
+                  </div>
 
-                <div className="p-3.5 space-y-2">
-                  <h4 className="text-xs font-bold text-slate-900 line-clamp-1">{item.title}</h4>
-                  <p className="text-[11px] text-slate-500 line-clamp-1">{item.caption || item.projectName || 'Verified Scheme'}</p>
+                  <div className="p-3.5 space-y-2">
+                    <h4 className="text-xs font-bold text-slate-900 line-clamp-1">{item.title}</h4>
+                    <p className="text-[11px] text-slate-500 line-clamp-1">{item.caption || item.projectName || 'Verified Scheme'}</p>
 
-                  <div className="pt-2 border-t border-slate-100 flex justify-end">
-                    <button
-                      onClick={() => handleDelete(item._id)}
-                      className="text-red-600 hover:text-red-700 text-xs font-medium flex items-center space-x-1 hover:underline"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>Remove</span>
-                    </button>
+                    <div className="pt-2 border-t border-slate-100 flex justify-end">
+                      <button
+                        onClick={() => handleDelete(item._id)}
+                        className="text-red-600 hover:text-red-700 text-xs font-medium flex items-center space-x-1 hover:underline"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Remove</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
+              );
+            })}
+          </div>
+
+          {/* Gallery Pagination Bar */}
+          {items.length > 0 && (
+            <div className="bg-white p-4 border border-slate-200 rounded-xl shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+              <div>
+                Showing <span className="font-bold text-slate-900">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-bold text-slate-900">{Math.min(currentPage * itemsPerPage, items.length)}</span> of <span className="font-bold text-slate-900">{items.length}</span> media items
               </div>
-            );
-          })}
+              {totalPages > 1 && (
+                <div className="flex items-center space-x-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-2.5 py-1 rounded-md border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed font-medium text-slate-700 transition-colors"
+                  >
+                    Previous
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((pg) => (
+                    <button
+                      key={pg}
+                      type="button"
+                      onClick={() => setCurrentPage(pg)}
+                      className={`w-7 h-7 rounded-md text-xs font-bold transition-colors ${
+                        currentPage === pg
+                          ? 'bg-blue-600 text-white shadow-xs'
+                          : 'border border-slate-200 bg-white hover:bg-slate-100 text-slate-700'
+                      }`}
+                    >
+                      {pg}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="px-2.5 py-1 rounded-md border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed font-medium text-slate-700 transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -327,24 +377,57 @@ export const Gallery: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Upload File from Computer (or Enter URL)
+                <label className="block text-xs font-semibold text-slate-800 mb-1.5">
+                  Media File (Upload from Computer / Phone)
                 </label>
-                <input
-                  type="file"
-                  accept={mediaType === 'video' ? 'video/*' : 'image/*'}
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) setSelectedFile(e.target.files[0]);
-                  }}
-                  className="w-full text-xs text-slate-600 mb-2 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
-                />
-                <input
-                  type="url"
-                  value={mediaUrl}
-                  onChange={(e) => setMediaUrl(e.target.value)}
-                  placeholder="Or enter direct URL: https://images.unsplash.com/..."
-                  className="w-full p-2 bg-white border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none shadow-xs"
-                />
+                {selectedFile ? (
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 flex items-center justify-between">
+                    <div className="flex items-center space-x-3 overflow-hidden">
+                      <div className="w-12 h-12 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 font-bold text-xs">
+                        {mediaType === 'video' ? '🎬' : '🖼️'}
+                      </div>
+                      <div className="overflow-hidden">
+                        <p className="text-xs font-bold text-slate-900 truncate">{selectedFile.name}</p>
+                        <p className="text-[11px] text-slate-500">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB • Ready to upload</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { setSelectedFile(null); }}
+                      className="px-2.5 py-1 text-xs text-red-600 hover:bg-red-50 rounded-lg transition-colors font-semibold"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <label className="border-2 border-dashed border-slate-300 hover:border-blue-500 bg-slate-50/60 hover:bg-blue-50/30 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer transition-all">
+                    <Upload className="w-5 h-5 text-blue-600 mb-1" />
+                    <span className="text-xs font-bold text-slate-800">
+                      Click to choose {mediaType === 'video' ? 'video' : 'photo'} from device
+                    </span>
+                    <span className="text-[11px] text-slate-500">
+                      {mediaType === 'video' ? 'MP4, MOV, WEBM' : 'JPG, PNG, WEBP, AVIF'} up to 100MB
+                    </span>
+                    <input
+                      type="file"
+                      accept={mediaType === 'video' ? 'video/*' : 'image/*'}
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) setSelectedFile(e.target.files[0]);
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+
+                <div className="mt-2">
+                  <input
+                    type="url"
+                    value={mediaUrl}
+                    onChange={(e) => setMediaUrl(e.target.value)}
+                    placeholder="Or enter direct URL if already hosted (optional)"
+                    className="w-full p-2 bg-slate-50 border border-slate-200 focus:border-blue-500 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none"
+                  />
+                </div>
               </div>
 
               <div className="pt-3 border-t border-slate-200 flex justify-end space-x-2">

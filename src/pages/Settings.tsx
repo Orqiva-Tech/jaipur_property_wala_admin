@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Save, CheckCircle2, ShieldCheck, Phone, MapPin, Mail, Clock } from 'lucide-react';
-import { adminService } from '../services/api';
+import React, { useEffect, useState, useRef } from 'react';
+import { Save, CheckCircle2, ShieldCheck, Phone, MapPin, Mail, Clock, Upload, Loader2, Image as ImageIcon } from 'lucide-react';
+import { adminService, propertyService } from '../services/api';
 import { WebsiteSettings } from '../types';
 
 export const Settings: React.FC = () => {
@@ -8,6 +8,9 @@ export const Settings: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [logoError, setLogoError] = useState<string | null>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -23,6 +26,27 @@ export const Settings: React.FC = () => {
 
     fetchSettings();
   }, []);
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !settings) return;
+    setUploadingLogo(true);
+    setLogoError(null);
+    try {
+      const res = await propertyService.uploadFile(file);
+      if (res.data?.url) {
+        setSettings({ ...settings, logoUrl: res.data.url });
+      } else {
+        throw new Error('Upload failed');
+      }
+    } catch (err: any) {
+      console.error('Error uploading logo', err);
+      setLogoError(err.response?.data?.message || 'Failed to upload logo from your device');
+    } finally {
+      setUploadingLogo(false);
+      if (logoInputRef.current) logoInputRef.current.value = '';
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,21 +111,68 @@ export const Settings: React.FC = () => {
           </h3>
 
           <div className="flex flex-col sm:flex-row items-center gap-6">
-            <img 
-              src={settings.logoUrl || '/logo.png'} 
-              alt="Brand Logo" 
-              className="w-20 h-20 rounded-full border-2 border-slate-300 shadow-md object-cover flex-shrink-0"
-            />
-            <div className="flex-1 w-full space-y-1">
-              <label className="block text-xs font-semibold text-slate-700">Official Brand Logo URL (Cloudinary)</label>
-              <input
-                type="text"
-                value={settings.logoUrl || ''}
-                onChange={(e) => setSettings({ ...settings, logoUrl: e.target.value })}
-                placeholder="https://res.cloudinary.com/..."
-                className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none shadow-xs font-mono"
+            <div className="relative group">
+              <img 
+                src={settings.logoUrl || '/logo.png'} 
+                alt="Brand Logo" 
+                className="w-20 h-20 rounded-full border-2 border-slate-300 shadow-md object-cover flex-shrink-0 bg-white"
               />
-              <p className="text-[11px] text-slate-500">This logo is displayed in headers, footers, favicons, and admin portals.</p>
+              <button
+                type="button"
+                onClick={() => logoInputRef.current?.click()}
+                disabled={uploadingLogo}
+                className="absolute inset-0 bg-black/40 rounded-full flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold"
+              >
+                <Upload className="w-4 h-4 mb-0.5" />
+                <span>Change</span>
+              </button>
+            </div>
+
+            <div className="flex-1 w-full space-y-2">
+              <input
+                ref={logoInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleLogoUpload}
+                className="hidden"
+              />
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => logoInputRef.current?.click()}
+                  disabled={uploadingLogo}
+                  className="px-4 py-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold border border-blue-200 transition-colors flex items-center space-x-1.5 shadow-2xs"
+                >
+                  {uploadingLogo ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Uploading Logo from Device...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Upload New Logo from Computer / Phone</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {logoError && (
+                <p className="text-xs text-red-600 font-medium">{logoError}</p>
+              )}
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">Logo URL (Cloudinary)</label>
+                <input
+                  type="text"
+                  value={settings.logoUrl || ''}
+                  onChange={(e) => setSettings({ ...settings, logoUrl: e.target.value })}
+                  placeholder="https://res.cloudinary.com/..."
+                  className="w-full p-2 bg-slate-50 border border-slate-200 focus:border-blue-500 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none font-mono"
+                />
+              </div>
+              <p className="text-[11px] text-slate-500">This logo appears in the public website header, mobile menu, footer, and admin console.</p>
             </div>
           </div>
         </div>

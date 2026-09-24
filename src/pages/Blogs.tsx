@@ -48,6 +48,11 @@ export const Blogs: React.FC = () => {
   const [coverUploadError, setCoverUploadError] = useState<string | null>(null);
   const [showManualUrlInput, setShowManualUrlInput] = useState(false);
   const [activeContentTab, setActiveContentTab] = useState<'write' | 'preview'>('write');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const itemsPerPage = 8;
+  const totalPages = Math.ceil(blogs.length / itemsPerPage) || 1;
+  const paginatedBlogs = blogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -250,7 +255,7 @@ export const Blogs: React.FC = () => {
                   <td colSpan={5} className="p-12 text-center text-slate-400">No blog articles created yet.</td>
                 </tr>
               ) : (
-                blogs.map((b) => (
+                paginatedBlogs.map((b) => (
                   <tr key={b._id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="p-4 font-semibold text-slate-900 flex items-center space-x-3">
                       <div className="w-12 h-10 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200">
@@ -299,6 +304,49 @@ export const Blogs: React.FC = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Bar */}
+        {blogs.length > 0 && (
+          <div className="bg-slate-50 px-4 py-3 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+            <div>
+              Showing <span className="font-bold text-slate-900">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-bold text-slate-900">{Math.min(currentPage * itemsPerPage, blogs.length)}</span> of <span className="font-bold text-slate-900">{blogs.length}</span> articles
+            </div>
+            {totalPages > 1 && (
+              <div className="flex items-center space-x-1.5">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-2.5 py-1 rounded-md border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed font-medium text-slate-700 transition-colors"
+                >
+                  Previous
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pg) => (
+                  <button
+                    key={pg}
+                    type="button"
+                    onClick={() => setCurrentPage(pg)}
+                    className={`w-7 h-7 rounded-md text-xs font-bold transition-colors ${
+                      currentPage === pg
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : 'border border-slate-200 bg-white hover:bg-slate-100 text-slate-700'
+                    }`}
+                  >
+                    {pg}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="px-2.5 py-1 rounded-md border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed font-medium text-slate-700 transition-colors"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Modal */}
