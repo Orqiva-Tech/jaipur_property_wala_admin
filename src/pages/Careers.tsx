@@ -67,13 +67,23 @@ export const Careers: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Delete this career opening?')) return;
+  const [deleteConfirmCareer, setDeleteConfirmCareer] = useState<Career | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const confirmDeleteCareer = async () => {
+    if (!deleteConfirmCareer) return;
+    const id = deleteConfirmCareer._id;
+    setDeletingId(id);
+    setCareers(prev => prev.filter(c => c._id !== id));
     try {
       await careerService.delete(id);
+      setDeleteConfirmCareer(null);
       fetchCareers();
     } catch (err) {
       console.error('Error deleting career', err);
+      fetchCareers();
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -186,8 +196,9 @@ export const Careers: React.FC = () => {
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        onClick={() => handleDelete(job._id)}
-                        className="p-1.5 rounded-md bg-red-50 hover:bg-red-100 text-red-600 transition-colors border border-red-200"
+                        type="button"
+                        onClick={() => setDeleteConfirmCareer(job)}
+                        className="p-1.5 rounded-md bg-red-50 hover:bg-red-100 text-red-600 transition-colors border border-red-200 cursor-pointer"
                         title="Delete Job"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -349,6 +360,42 @@ export const Careers: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmCareer && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-100">
+            <div className="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mx-auto">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <div className="text-center space-y-1">
+              <h3 className="text-base font-bold text-slate-900">Delete Job Opening?</h3>
+              <p className="text-xs text-slate-500">
+                Are you sure you want to delete <span className="font-semibold text-slate-800">"{deleteConfirmCareer.title}"</span>? This will remove the listing and active applicants.
+              </p>
+            </div>
+            <div className="flex items-center space-x-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmCareer(null)}
+                disabled={deletingId !== null}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteCareer}
+                disabled={deletingId !== null}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold transition-colors flex items-center justify-center space-x-1.5 shadow-xs"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>{deletingId ? 'Deleting...' : 'Delete'}</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

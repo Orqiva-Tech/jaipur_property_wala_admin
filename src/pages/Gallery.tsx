@@ -60,15 +60,26 @@ export const Gallery: React.FC = () => {
     fetchItems();
   }, [selectedCityFilter]);
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Delete this gallery item?')) return;
+  const [deleteConfirmItem, setDeleteConfirmItem] = useState<GalleryItem | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const confirmDeleteItem = async () => {
+    if (!deleteConfirmItem) return;
+    const id = deleteConfirmItem._id;
+    setDeletingId(id);
+    // Optimistic UI update: instantly remove from list
+    setItems(prev => prev.filter(item => item._id !== id));
     try {
       await galleryService.delete(id);
-      setSuccessMessage('Gallery item removed successfully.');
+      setSuccessMessage(`Gallery item "${deleteConfirmItem.title}" deleted successfully.`);
       setTimeout(() => setSuccessMessage(null), 3000);
+      setDeleteConfirmItem(null);
       fetchItems();
     } catch (err: any) {
       setErrorMessage(err.response?.data?.message || 'Error deleting item');
+      fetchItems();
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -215,8 +226,9 @@ export const Gallery: React.FC = () => {
 
                     <div className="pt-2 border-t border-slate-100 flex justify-end">
                       <button
-                        onClick={() => handleDelete(item._id)}
-                        className="text-red-600 hover:text-red-700 text-xs font-medium flex items-center space-x-1 hover:underline"
+                        type="button"
+                        onClick={() => setDeleteConfirmItem(item)}
+                        className="text-red-600 hover:text-red-700 text-xs font-medium flex items-center space-x-1 hover:underline cursor-pointer"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                         <span>Remove</span>
@@ -447,6 +459,42 @@ export const Gallery: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmItem && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-100">
+            <div className="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mx-auto">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <div className="text-center space-y-1">
+              <h3 className="text-base font-bold text-slate-900">Delete Gallery Item?</h3>
+              <p className="text-xs text-slate-500">
+                Are you sure you want to remove <span className="font-semibold text-slate-800">"{deleteConfirmItem.title}"</span>? This cannot be undone.
+              </p>
+            </div>
+            <div className="flex items-center space-x-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmItem(null)}
+                disabled={deletingId !== null}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteItem}
+                disabled={deletingId !== null}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold transition-colors flex items-center justify-center space-x-1.5 shadow-xs"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>{deletingId ? 'Deleting...' : 'Delete'}</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

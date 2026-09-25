@@ -168,13 +168,23 @@ export const Blogs: React.FC = () => {
     return formatContentForSaving(formData.content || '');
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Delete this blog post?')) return;
+  const [deleteConfirmBlog, setDeleteConfirmBlog] = useState<Blog | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const confirmDeleteBlog = async () => {
+    if (!deleteConfirmBlog) return;
+    const id = deleteConfirmBlog._id;
+    setDeletingId(id);
+    setBlogs(prev => prev.filter(b => b._id !== id));
     try {
       await blogService.delete(id);
+      setDeleteConfirmBlog(null);
       fetchBlogs();
     } catch (err) {
       console.error('Error deleting blog', err);
+      fetchBlogs();
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -291,8 +301,9 @@ export const Blogs: React.FC = () => {
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        onClick={() => handleDelete(b._id)}
-                        className="p-1.5 rounded-md bg-red-50 hover:bg-red-100 text-red-600 transition-colors border border-red-200"
+                        type="button"
+                        onClick={() => setDeleteConfirmBlog(b)}
+                        className="p-1.5 rounded-md bg-red-50 hover:bg-red-100 text-red-600 transition-colors border border-red-200 cursor-pointer"
                         title="Delete Article"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -709,6 +720,42 @@ export const Blogs: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmBlog && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-100">
+            <div className="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mx-auto">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <div className="text-center space-y-1">
+              <h3 className="text-base font-bold text-slate-900">Delete Blog Article?</h3>
+              <p className="text-xs text-slate-500">
+                Are you sure you want to delete <span className="font-semibold text-slate-800">"{deleteConfirmBlog.title}"</span>? This will remove the article from the public site.
+              </p>
+            </div>
+            <div className="flex items-center space-x-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmBlog(null)}
+                disabled={deletingId !== null}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteBlog}
+                disabled={deletingId !== null}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold transition-colors flex items-center justify-center space-x-1.5 shadow-xs"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>{deletingId ? 'Deleting...' : 'Delete'}</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
