@@ -68,11 +68,10 @@ export const AdminLayout: React.FC = () => {
             key={item.name}
             to={item.path}
             onClick={() => setIsMobileMenuOpen(false)}
-            className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-colors ${
-              active
-                ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-100 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
-            }`}
+            className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-colors ${active
+              ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-100 shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+              }`}
           >
             <div className="flex items-center space-x-2.5">
               <Icon className={`w-4 h-4 ${active ? 'text-blue-600' : 'text-slate-400'}`} />
@@ -80,11 +79,10 @@ export const AdminLayout: React.FC = () => {
             </div>
             {item.badge && (
               <span
-                className={`text-[10px] px-2 py-0.5 rounded-md font-semibold ${
-                  active
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-slate-100 text-slate-600 border border-slate-200'
-                }`}
+                className={`text-[10px] px-2 py-0.5 rounded-md font-semibold ${active
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-100 text-slate-600 border border-slate-200'
+                  }`}
               >
                 {item.badge}
               </span>
@@ -150,15 +148,7 @@ export const AdminLayout: React.FC = () => {
           </Link>
         </div>
 
-        <a
-          href={import.meta.env.VITE_PUBLIC_WEBSITE_URL || 'https://property.dobhi.in'}
-          target="_blank"
-          rel="noreferrer"
-          className="p-2 rounded-lg text-slate-600 hover:text-blue-600 hover:bg-slate-100 border border-slate-200 transition-colors"
-          title="Visit Live Public Website"
-        >
-          <ExternalLink className="w-4 h-4" />
-        </a>
+
       </header>
 
       {/* ================= MOBILE DRAWER BACKDROP & PANEL (< md) ================= */}
@@ -171,9 +161,8 @@ export const AdminLayout: React.FC = () => {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-white flex flex-col justify-between shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${
-          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-white flex flex-col justify-between shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         <div className="flex-1 overflow-y-auto">
           {/* Drawer Header */}
@@ -292,15 +281,7 @@ export const AdminLayout: React.FC = () => {
             </div>
           </div>
 
-          <a
-            href={import.meta.env.VITE_PUBLIC_WEBSITE_URL || 'https://property.dobhi.in'}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200 transition-colors shadow-xs"
-          >
-            <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
-            <span>Visit Live Site</span>
-          </a>
+
         </header>
 
         {/* Dynamic Route Content */}

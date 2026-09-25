@@ -12,15 +12,15 @@ export const Careers: React.FC = () => {
 
   const initialForm = {
     title: '',
-    department: 'Sales & Business Development',
+    department: '',
     employmentType: 'Full-Time',
-    location: 'Jagatpura, Jaipur',
-    experience: '1 - 3 Years',
-    salaryRange: '₹25,000 - ₹45,000 / month + Incentives',
-    openings: 2,
+    location: '',
+    experience: '',
+    salaryRange: '',
+    openings: 1,
     description: '',
-    responsibilities: 'Conduct property site visits with clients\nExplain JDA legal titles and bank loan procedures\nClose residential plot deals with high customer satisfaction',
-    qualifications: 'Graduation in any stream\nGood communication skills in Hindi & English\nOwn conveyance for site visits',
+    responsibilities: '',
+    qualifications: '',
     isActive: true
   };
 
@@ -52,17 +52,17 @@ export const Careers: React.FC = () => {
   const openEditModal = (job: Career) => {
     setEditingId(job._id);
     setFormData({
-      title: job.title,
-      department: job.department,
-      employmentType: job.employmentType,
-      location: job.location,
-      experience: job.experience,
+      title: job.title || '',
+      department: job.department || '',
+      employmentType: job.employmentType || 'Full-Time',
+      location: job.location || '',
+      experience: job.experience || '',
       salaryRange: job.salaryRange || '',
       openings: job.openings || 1,
-      description: job.description,
+      description: job.description || '',
       responsibilities: job.responsibilities ? job.responsibilities.join('\n') : '',
       qualifications: job.qualifications ? job.qualifications.join('\n') : '',
-      isActive: job.isActive
+      isActive: job.isActive !== undefined ? job.isActive : true
     });
     setIsModalOpen(true);
   };
@@ -82,8 +82,10 @@ export const Careers: React.FC = () => {
     setSubmitting(true);
 
     try {
+      const desc = formData.description.trim() || `${formData.title} role at Jaipur Property Wala`;
       const payload = {
         ...formData,
+        description: desc,
         responsibilities: formData.responsibilities.split('\n').map(s => s.trim()).filter(Boolean),
         qualifications: formData.qualifications.split('\n').map(s => s.trim()).filter(Boolean)
       };
@@ -274,12 +276,48 @@ export const Careers: React.FC = () => {
                 </div>
               </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Salary / Compensation</label>
+                  <input
+                    type="text"
+                    value={formData.salaryRange}
+                    onChange={(e) => setFormData({ ...formData, salaryRange: e.target.value })}
+                    placeholder="e.g. ₹25,000 - ₹45,000 / month + Incentives"
+                    className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none shadow-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">No. of Openings</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={formData.openings}
+                    onChange={(e) => setFormData({ ...formData, openings: parseInt(e.target.value) || 1 })}
+                    className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none shadow-xs"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Job Description *</label>
+                <textarea
+                  rows={3}
+                  required
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Describe the role overview, expectations, and day-to-day responsibilities..."
+                  className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none shadow-xs"
+                />
+              </div>
+
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Responsibilities (one per line)</label>
                 <textarea
                   rows={3}
                   value={formData.responsibilities}
                   onChange={(e) => setFormData({ ...formData, responsibilities: e.target.value })}
+                  placeholder="e.g. Conduct property site visits&#10;Explain JDA legal titles to buyers"
                   className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none shadow-xs"
                 />
               </div>
