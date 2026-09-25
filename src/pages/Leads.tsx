@@ -44,6 +44,23 @@ export const Leads: React.FC = () => {
     fetchLeads();
   }, [search, statusFilter]);
 
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportCSV = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    setExporting(true);
+    try {
+      await enquiryService.downloadCSV();
+      setSuccessMessage('Leads exported successfully!');
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err: any) {
+      console.error('Export error, opening direct link', err);
+      window.open(enquiryService.exportCSV(), '_blank');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const handleStatusChange = async (id: string, newStatus: string) => {
     try {
       await enquiryService.updateStatus(id, { status: newStatus });
@@ -131,14 +148,15 @@ export const Leads: React.FC = () => {
           </p>
         </div>
 
-        <a
-          href={enquiryService.exportCSV()}
-          download
-          className="w-full sm:w-auto justify-center px-4 py-2.5 rounded-lg bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-semibold shadow-xs transition-colors flex items-center space-x-2 shrink-0"
+        <button
+          type="button"
+          onClick={handleExportCSV}
+          disabled={exporting}
+          className="w-full sm:w-auto justify-center px-4 py-2.5 rounded-lg bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-semibold shadow-xs transition-colors flex items-center space-x-2 shrink-0 disabled:opacity-50 cursor-pointer"
         >
           <Download className="w-4 h-4 text-slate-500" />
-          <span>Export All Leads (CSV)</span>
-        </a>
+          <span>{exporting ? 'Exporting CSV...' : 'Export All Leads (CSV)'}</span>
+        </button>
       </div>
 
       {/* Alert Banners */}

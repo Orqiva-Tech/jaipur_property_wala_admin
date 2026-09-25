@@ -82,7 +82,22 @@ export const enquiryService = {
   updateStatus: (id: string, data: { status?: string; note?: string }) => api.put(`/enquiries/${id}`, data),
   delete: (id: string) => api.delete(`/enquiries/${id}`),
   deleteNote: (enquiryId: string, noteId: string) => api.delete(`/enquiries/${enquiryId}/notes/${noteId}`),
-  exportCSV: () => `${API_BASE_URL}/enquiries/export`
+  exportCSV: () => {
+    const token = localStorage.getItem('token') || '';
+    return `${API_BASE_URL}/enquiries/export${token ? `?token=${encodeURIComponent(token)}` : ''}`;
+  },
+  downloadCSV: async () => {
+    const res = await api.get('/enquiries/export', { responseType: 'blob' });
+    const blob = new Blob([res.data], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `jaipur-property-wala-leads-${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+  }
 };
 
 export const careerService = {

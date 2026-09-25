@@ -42,6 +42,21 @@ export const Dashboard: React.FC = () => {
     }
   };
 
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportCSV = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    setExporting(true);
+    try {
+      await enquiryService.downloadCSV();
+    } catch (err: any) {
+      console.error('Export error, opening direct link', err);
+      window.open(enquiryService.exportCSV(), '_blank');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -81,14 +96,15 @@ export const Dashboard: React.FC = () => {
             <Plus className="w-3.5 h-3.5" />
             <span>Add Property</span>
           </Link>
-          <a
-            href={enquiryService.exportCSV()}
-            download
-            className="flex-1 sm:flex-initial px-3.5 py-2 rounded-lg bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-medium transition-colors flex items-center justify-center space-x-1.5 shadow-xs"
+          <button
+            type="button"
+            onClick={handleExportCSV}
+            disabled={exporting}
+            className="flex-1 sm:flex-initial px-3.5 py-2 rounded-lg bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-medium transition-colors flex items-center justify-center space-x-1.5 shadow-xs disabled:opacity-50 cursor-pointer"
           >
             <Download className="w-3.5 h-3.5 text-slate-500" />
-            <span>Export CSV</span>
-          </a>
+            <span>{exporting ? 'Exporting...' : 'Export CSV'}</span>
+          </button>
         </div>
       </div>
 

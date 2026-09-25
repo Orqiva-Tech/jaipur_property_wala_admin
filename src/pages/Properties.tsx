@@ -75,7 +75,7 @@ export const Properties: React.FC = () => {
     title: '',
     tagline: '',
     description: '',
-    category: 'Township Plots',
+    category: 'Residential',
     type: 'Plot',
     city: 'Jaipur',
     area: '',
@@ -616,8 +616,8 @@ export const Properties: React.FC = () => {
                 />
               </div>
 
-              {/* City & Category */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* City, Category & Property Type */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">Select City / Hub *</label>
                   <select
@@ -639,6 +639,22 @@ export const Properties: React.FC = () => {
                         <option value="Mumbai">Mumbai (Financial Hub & Coastal)</option>
                       </>
                     )}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Category *</label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 rounded-lg text-xs text-slate-900 focus:outline-none shadow-xs"
+                  >
+                    <option value="Residential">Residential</option>
+                    <option value="Commercial">Commercial</option>
+                    <option value="Township Plots">Township Plots</option>
+                    <option value="Industrial">Industrial</option>
+                    <option value="Agricultural">Agricultural</option>
+                    <option value="Mixed-Use">Mixed-Use</option>
                   </select>
                 </div>
 
