@@ -86,7 +86,7 @@ export const Gallery: React.FC = () => {
       if (caption) formData.append('caption', caption);
       if (projectName) formData.append('projectName', projectName);
       if (mediaUrl) formData.append('mediaUrl', mediaUrl);
-      if (selectedFile) formData.append('file', selectedFile);
+      if (selectedFile) formData.append('media', selectedFile);
 
       await galleryService.create(formData);
       setSuccessMessage('Media item published successfully!');
