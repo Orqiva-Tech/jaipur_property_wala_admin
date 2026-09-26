@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Save, CheckCircle2, ShieldCheck, Phone, MapPin, Mail, Clock, Upload, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Save, CheckCircle2, Phone, MapPin, Mail, Upload, Loader2, Share2 } from 'lucide-react';
 import { adminService, propertyService } from '../services/api';
 import { WebsiteSettings } from '../types';
 
@@ -292,6 +292,123 @@ export const Settings: React.FC = () => {
                 })}
                 className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none shadow-xs"
               />
+            </div>
+          </div>
+        </div>
+
+        {/* Social Media Links Card */}
+        <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-xs space-y-4">
+          <h3 className="text-sm font-bold text-slate-900 border-b border-slate-200 pb-3 flex items-center gap-2">
+            <Share2 className="w-4 h-4 text-blue-600" />
+            Social Media Links (Footer Icons)
+          </h3>
+          <p className="text-[11px] text-slate-500 -mt-2">
+            These links appear on the public website footer social media icons. Enter the full URL including https://.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Facebook */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
+                <span className="w-3.5 h-3.5 rounded-full bg-blue-600 inline-flex items-center justify-center">
+                  <i className="fa-brands fa-facebook-f text-white text-[9px]" />
+                </span>
+                Facebook Page URL
+              </label>
+              <input
+                type="url"
+                value={settings.socialLinks?.facebook || ''}
+                onChange={(e) => setSettings({
+                  ...settings,
+                  socialLinks: { ...settings.socialLinks, facebook: e.target.value }
+                })}
+                placeholder="https://facebook.com/yourpage"
+                className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none shadow-xs"
+              />
+            </div>
+
+            {/* Instagram */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
+                <span className="w-3.5 h-3.5 rounded-full bg-gradient-to-br from-pink-500 to-orange-400 inline-flex items-center justify-center">
+                  <i className="fa-brands fa-instagram text-white text-[9px]" />
+                </span>
+                Instagram Profile URL
+              </label>
+              <input
+                type="url"
+                value={settings.socialLinks?.instagram || ''}
+                onChange={(e) => setSettings({
+                  ...settings,
+                  socialLinks: { ...settings.socialLinks, instagram: e.target.value }
+                })}
+                placeholder="https://instagram.com/yourprofile"
+                className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none shadow-xs"
+              />
+            </div>
+
+            {/* YouTube */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
+                <span className="w-3.5 h-3.5 rounded-full bg-red-600 inline-flex items-center justify-center">
+                  <i className="fa-brands fa-youtube text-white text-[9px]" />
+                </span>
+                YouTube Channel URL
+              </label>
+              <input
+                type="url"
+                value={settings.socialLinks?.youtube || ''}
+                onChange={(e) => setSettings({
+                  ...settings,
+                  socialLinks: { ...settings.socialLinks, youtube: e.target.value }
+                })}
+                placeholder="https://youtube.com/@yourchannel"
+                className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none shadow-xs"
+              />
+            </div>
+
+            {/* LinkedIn */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
+                <span className="w-3.5 h-3.5 rounded-full bg-blue-700 inline-flex items-center justify-center">
+                  <i className="fa-brands fa-linkedin-in text-white text-[9px]" />
+                </span>
+                LinkedIn Page URL
+              </label>
+              <input
+                type="url"
+                value={settings.socialLinks?.linkedin || ''}
+                onChange={(e) => setSettings({
+                  ...settings,
+                  socialLinks: { ...settings.socialLinks, linkedin: e.target.value }
+                })}
+                placeholder="https://linkedin.com/company/yourcompany"
+                className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none shadow-xs"
+              />
+            </div>
+          </div>
+
+          {/* Live Preview */}
+          <div className="pt-2 border-t border-slate-100">
+            <p className="text-[11px] text-slate-500 mb-2 font-semibold">Live Preview (Footer Icons):</p>
+            <div className="flex items-center gap-2">
+              <a href={settings.socialLinks?.facebook || '#'} target="_blank" rel="noreferrer"
+                className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white hover:scale-110 transition-transform" title="Facebook">
+                <i className="fa-brands fa-facebook-f text-xs text-white" />
+              </a>
+              <a href={settings.socialLinks?.instagram || '#'} target="_blank" rel="noreferrer"
+                className="w-7 h-7 rounded-full bg-gradient-to-br from-pink-500 to-orange-400 flex items-center justify-center text-white hover:scale-110 transition-transform" title="Instagram">
+                <i className="fa-brands fa-instagram text-xs text-white" />
+              </a>
+              <a href={settings.socialLinks?.youtube || '#'} target="_blank" rel="noreferrer"
+                className="w-7 h-7 rounded-full bg-red-600 flex items-center justify-center text-white hover:scale-110 transition-transform" title="YouTube">
+                <i className="fa-brands fa-youtube text-xs text-white" />
+              </a>
+              <a href={settings.socialLinks?.linkedin || '#'} target="_blank" rel="noreferrer"
+                className="w-7 h-7 rounded-full bg-blue-700 flex items-center justify-center text-white hover:scale-110 transition-transform" title="LinkedIn">
+                <i className="fa-brands fa-linkedin-in text-xs text-white" />
+              </a>
+              <span className="text-[10px] text-slate-400 ml-1">← Click to test links</span>
             </div>
           </div>
         </div>
