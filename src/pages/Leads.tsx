@@ -243,7 +243,15 @@ export const Leads: React.FC = () => {
                       >
                         {lead.name}
                       </Link>
-                      {lead.email && <span className="text-[11px] text-slate-500 font-normal">{lead.email}</span>}
+                      {lead.email && <span className="text-[11px] text-slate-500 font-normal block">{lead.email}</span>}
+                      <div className="flex items-center space-x-1.5 mt-1">
+                        <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                          {lead.source || 'Website'}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-normal">
+                          {new Date(lead.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                        </span>
+                      </div>
                     </td>
                     <td className="p-4">
                       <a href={`tel:${lead.phone}`} className="font-semibold text-blue-600 hover:underline block">
