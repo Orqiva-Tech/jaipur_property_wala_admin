@@ -1,8 +1,19 @@
 import axios from 'axios';
 
-// Unconditionally use live Render production backend
-export const BACKEND_URL = 'https://jaipur-property-wala-backend.onrender.com';
-export const API_BASE_URL = 'https://jaipur-property-wala-backend.onrender.com/api';
+// Production API Base Configuration
+const rawApiUrl = (
+  import.meta.env.VITE_API_URL ||
+  import.meta.env.VITE_API_BASE_URL ||
+  'https://api.jaipurpropertywala.in'
+).replace(/\/+$/, '');
+
+export const BACKEND_URL = rawApiUrl.endsWith('/api')
+  ? rawApiUrl.slice(0, -4)
+  : rawApiUrl;
+
+export const API_BASE_URL = rawApiUrl.endsWith('/api')
+  ? rawApiUrl
+  : `${rawApiUrl}/api`;
 
 /**
  * Format image URL: Cloudinary/External URLs remain untouched,

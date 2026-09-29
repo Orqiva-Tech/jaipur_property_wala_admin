@@ -97,7 +97,7 @@ export const AdminLayout: React.FC = () => {
     <div className="p-4 border-t border-slate-200 bg-slate-50 space-y-3">
       <div className="grid grid-cols-2 gap-2 pt-1">
         <a
-          href={import.meta.env.VITE_PUBLIC_WEBSITE_URL || 'https://property.dobhi.in'}
+          href={import.meta.env.VITE_PUBLIC_WEBSITE_URL || 'https://jaipurpropertywala.in'}
           target="_blank"
           rel="noreferrer"
           className="flex items-center justify-center space-x-1.5 py-2 rounded-lg bg-white hover:bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200 shadow-xs transition-colors"
