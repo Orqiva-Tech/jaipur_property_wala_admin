@@ -414,8 +414,7 @@ export const Settings: React.FC = () => {
         {/* Brand & Logo Card */}
         <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-xs space-y-4">
           <h3 className="text-sm font-bold text-slate-900 border-b border-slate-200 pb-3 flex items-center justify-between">
-            <span>Brand Identity & Logo</span>
-            <span className="text-[11px] font-normal text-slate-500">Stored on Cloudinary CDN</span>
+            <span>Brand Logo</span>
           </h3>
 
           <div className="flex flex-col sm:flex-row items-center gap-6">
@@ -455,12 +454,12 @@ export const Settings: React.FC = () => {
                   {uploadingLogo ? (
                     <>
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Uploading Logo from Device...</span>
+                      <span>Uploading Logo...</span>
                     </>
                   ) : (
                     <>
                       <Upload className="w-3.5 h-3.5" />
-                      <span>Upload New Logo from Computer / Phone</span>
+                      <span>Upload New Logo</span>
                     </>
                   )}
                 </button>
@@ -469,18 +468,6 @@ export const Settings: React.FC = () => {
               {logoError && (
                 <p className="text-xs text-red-600 font-medium">{logoError}</p>
               )}
-
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">Logo URL (Cloudinary)</label>
-                <input
-                  type="text"
-                  value={settings.logoUrl || ''}
-                  onChange={(e) => setSettings({ ...settings, logoUrl: e.target.value })}
-                  placeholder="https://res.cloudinary.com/..."
-                  className="w-full p-2 bg-slate-50 border border-slate-200 focus:border-blue-500 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none font-mono"
-                />
-              </div>
-              <p className="text-[11px] text-slate-500">This logo appears in the public website header, mobile menu, footer, and admin console.</p>
             </div>
           </div>
         </div>
@@ -582,7 +569,7 @@ export const Settings: React.FC = () => {
                       </div>
 
                       {/* Image Preview */}
-                      <div className="relative w-full h-32 rounded-lg overflow-hidden bg-slate-200 border border-slate-300">
+                      <div className="relative w-full h-36 rounded-lg overflow-hidden bg-slate-200 border border-slate-300">
                         {imgUrl ? (
                           <img
                             src={imgUrl}
@@ -596,31 +583,22 @@ export const Settings: React.FC = () => {
                           </div>
                         )}
                       </div>
-
-                      {/* URL Field */}
-                      <div>
-                        <label className="block text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1">
-                          Direct Image URL
-                        </label>
-                        <input
-                          type="text"
-                          value={imgUrl}
-                          onChange={(e) => updateHeroImage(idx, e.target.value)}
-                          placeholder="https://..."
-                          className="w-full p-2 bg-white border border-slate-200 rounded-lg text-[11px] text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 font-mono"
-                        />
-                      </div>
                     </div>
                   );
                 })}
               </div>
             </div>
           ) : (
-            <div className="space-y-3 bg-slate-50 rounded-xl p-4 border border-slate-200">
+            <div className="space-y-4 bg-slate-50 rounded-xl p-4 border border-slate-200">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Background Video Configuration
-                </span>
+                <div>
+                  <span className="text-xs font-bold text-slate-800 block">
+                    Hero Background Video
+                  </span>
+                  <span className="text-[11px] text-slate-500">
+                    Upload a video file from your computer or paste a YouTube / MP4 video link.
+                  </span>
+                </div>
                 <div className="flex items-center gap-2">
                   <input
                     ref={heroVideoInputRef}
@@ -633,12 +611,12 @@ export const Settings: React.FC = () => {
                     type="button"
                     onClick={() => heroVideoInputRef.current?.click()}
                     disabled={uploadingHeroVideo}
-                    className="px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 flex items-center space-x-1.5 shadow-2xs"
+                    className="px-3.5 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white hover:bg-blue-700 flex items-center space-x-1.5 shadow-xs transition-colors"
                   >
                     {uploadingHeroVideo ? (
                       <>
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        <span>Uploading Video...</span>
+                        <span>Uploading Video (please wait)...</span>
                       </>
                     ) : (
                       <>
@@ -652,18 +630,15 @@ export const Settings: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Video URL (Direct MP4 or YouTube Link)
+                  Or Paste Video Link (YouTube or Direct Video Link)
                 </label>
                 <input
                   type="text"
                   value={settings.hero?.videoUrl || ''}
                   onChange={(e) => updateHeroField('videoUrl', e.target.value)}
-                  placeholder="https://... or YouTube URL"
-                  className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none font-mono"
+                  placeholder="e.g. https://www.youtube.com/watch?v=... or direct MP4 link"
+                  className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none"
                 />
-                <p className="text-[11px] text-slate-500 mt-1">
-                  Tip: A lightweight 10–30 second HD looping video without audio works best for cinematic hero backgrounds.
-                </p>
               </div>
 
               {settings.hero?.videoUrl && (

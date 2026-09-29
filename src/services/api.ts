@@ -27,7 +27,7 @@ export const formatImageUrl = (url?: string): string => {
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 25000
+  timeout: 60000
 });
 
 // Attach JWT token to requests
@@ -72,7 +72,8 @@ export const propertyService = {
     const data = new FormData();
     data.append('file', file);
     return api.post('/properties/upload', data, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 0 // No timeout: allows large videos & high-res images to upload completely
     });
   },
   uploadMultipleFiles: (files: FileList | File[]) => {
@@ -81,7 +82,8 @@ export const propertyService = {
       data.append('files', files[i]);
     }
     return api.post('/properties/upload-multiple', data, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 0 // No timeout
     });
   }
 };
