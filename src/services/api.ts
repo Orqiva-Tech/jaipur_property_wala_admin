@@ -158,6 +158,7 @@ export const locationService = {
 export const adminService = {
   login: (credentials: { email: string; password: string }) => api.post('/admin/auth/login', credentials),
   getProfile: () => api.get('/admin/auth/me'),
+  changePassword: (data: { currentPassword?: string; oldPassword?: string; newPassword: string; confirmPassword?: string }) => api.put('/admin/auth/change-password', data),
   getStats: () => api.get('/admin/stats'),
   getSettings: () => api.get('/settings'),
   updateSettings: (data: any) => api.put('/admin/settings', data)
