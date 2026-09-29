@@ -68,12 +68,53 @@ export const propertyService = {
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
   delete: (id: string) => api.delete(`/properties/${id}`),
-  uploadFile: (file: File) => {
+  uploadFile: async (file: File, onProgress?: (percent: number) => void) => {
+    // Strategy 1: Direct Cloudinary CDN Upload (Bypasses Nginx 413 size limits & Network Errors, extremely fast globally)
+    try {
+      const cloudData = new FormData();
+      cloudData.append('file', file);
+      cloudData.append('upload_preset', 'jaipur_property_wala_uploads');
+
+      const cloudRes = await axios.post(
+        'https://api.cloudinary.com/v1_1/ripzq8zx/auto/upload',
+        cloudData,
+        {
+          timeout: 0,
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.total && onProgress) {
+              const percent = Math.min(99, Math.round((progressEvent.loaded * 100) / progressEvent.total));
+              onProgress(percent);
+            }
+          }
+        }
+      );
+
+      if (cloudRes.data?.secure_url) {
+        if (onProgress) onProgress(100);
+        return {
+          data: {
+            url: cloudRes.data.secure_url,
+            public_id: cloudRes.data.public_id,
+            filename: file.name
+          }
+        };
+      }
+    } catch (directErr: any) {
+      console.warn('[Direct Cloudinary upload attempt failed, falling back to server API]', directErr?.message || directErr);
+    }
+
+    // Strategy 2: Server API endpoint fallback
     const data = new FormData();
     data.append('file', file);
     return api.post('/properties/upload', data, {
       headers: { 'Content-Type': 'multipart/form-data' },
-      timeout: 0 // No timeout: allows large videos & high-res images to upload completely
+      timeout: 0,
+      onUploadProgress: (progressEvent) => {
+        if (progressEvent.total && onProgress) {
+          const percent = Math.min(99, Math.round((progressEvent.loaded * 100) / progressEvent.total));
+          onProgress(percent);
+        }
+      }
     });
   },
   uploadMultipleFiles: (files: FileList | File[]) => {

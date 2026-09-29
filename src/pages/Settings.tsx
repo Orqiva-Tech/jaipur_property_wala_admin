@@ -15,6 +15,7 @@ export const Settings: React.FC = () => {
   // Hero Media State & Upload Refs
   const [uploadingHeroImg, setUploadingHeroImg] = useState<number | null>(null);
   const [uploadingHeroVideo, setUploadingHeroVideo] = useState(false);
+  const [videoProgress, setVideoProgress] = useState<number>(0);
   const heroImageInputRefs = [
     useRef<HTMLInputElement>(null),
     useRef<HTMLInputElement>(null),
@@ -116,8 +117,11 @@ export const Settings: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file || !settings) return;
     setUploadingHeroVideo(true);
+    setVideoProgress(0);
     try {
-      const res = await propertyService.uploadFile(file);
+      const res = await propertyService.uploadFile(file, (percent) => {
+        setVideoProgress(percent);
+      });
       if (res.data?.url) {
         const curHero = settings.hero || {
           mediaType: 'video',
@@ -146,6 +150,7 @@ export const Settings: React.FC = () => {
       alert('Failed to upload hero video: ' + (err.response?.data?.message || err.message));
     } finally {
       setUploadingHeroVideo(false);
+      setVideoProgress(0);
       if (heroVideoInputRef.current) heroVideoInputRef.current.value = '';
     }
   };
@@ -590,13 +595,13 @@ export const Settings: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-4 bg-slate-50 rounded-xl p-4 border border-slate-200">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <span className="text-xs font-bold text-slate-800 block">
                     Hero Background Video
                   </span>
                   <span className="text-[11px] text-slate-500">
-                    Upload a video file from your computer or paste a YouTube / MP4 video link.
+                    Upload a high-quality looping video from your computer or phone.
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -611,51 +616,68 @@ export const Settings: React.FC = () => {
                     type="button"
                     onClick={() => heroVideoInputRef.current?.click()}
                     disabled={uploadingHeroVideo}
-                    className="px-3.5 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white hover:bg-blue-700 flex items-center space-x-1.5 shadow-xs transition-colors"
+                    className="px-4 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-400 flex items-center space-x-1.5 shadow-xs transition-colors"
                   >
                     {uploadingHeroVideo ? (
                       <>
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        <span>Uploading Video (please wait)...</span>
+                        <span>Uploading Video ({videoProgress}%)...</span>
                       </>
                     ) : (
                       <>
                         <Upload className="w-3.5 h-3.5" />
-                        <span>Upload Video from Device</span>
+                        <span>{settings.hero?.videoUrl ? 'Change Video' : 'Upload Video'}</span>
                       </>
                     )}
                   </button>
+
+                  {settings.hero?.videoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => updateHeroField('videoUrl', '')}
+                      disabled={uploadingHeroVideo}
+                      className="px-3 py-2 text-xs font-semibold rounded-lg bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 transition-colors"
+                    >
+                      Remove Video
+                    </button>
+                  )}
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Or Paste Video Link (YouTube or Direct Video Link)
-                </label>
-                <input
-                  type="text"
-                  value={settings.hero?.videoUrl || ''}
-                  onChange={(e) => updateHeroField('videoUrl', e.target.value)}
-                  placeholder="e.g. https://www.youtube.com/watch?v=... or direct MP4 link"
-                  className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none"
-                />
-              </div>
+              {/* Upload Progress Bar */}
+              {uploadingHeroVideo && (
+                <div className="space-y-1.5 bg-blue-50/70 border border-blue-200 rounded-lg p-3">
+                  <div className="flex justify-between text-xs text-blue-700 font-semibold">
+                    <span>Uploading directly to high-speed CDN...</span>
+                    <span>{videoProgress}%</span>
+                  </div>
+                  <div className="w-full bg-blue-100 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${videoProgress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
 
-              {settings.hero?.videoUrl && (
-                <div className="mt-3 rounded-lg overflow-hidden border border-slate-300 bg-black aspect-video max-w-md mx-auto">
-                  {settings.hero.videoUrl.includes('youtube.com') || settings.hero.videoUrl.includes('youtu.be') ? (
-                    <iframe
-                      src={settings.hero.videoUrl.includes('embed') ? settings.hero.videoUrl : `https://www.youtube.com/embed/${settings.hero.videoUrl.split('v=')[1]?.split('&')[0] || ''}`}
-                      title="Hero Video Preview"
-                      className="w-full h-full"
-                    />
-                  ) : (
-                    <video
-                      src={settings.hero.videoUrl}
-                      controls
-                      className="w-full h-full object-cover"
-                    />
-                  )}
+              {/* Video Player Preview */}
+              {settings.hero?.videoUrl ? (
+                <div className="relative rounded-xl overflow-hidden border border-slate-300 bg-black aspect-video max-w-lg mx-auto shadow-md">
+                  <video
+                    src={settings.hero.videoUrl}
+                    controls
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 flex flex-col items-center justify-center text-center text-slate-400">
+                  <Video className="w-10 h-10 mb-2 text-slate-400" />
+                  <p className="text-xs font-semibold text-slate-600">No Hero Video Uploaded</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Click "Upload Video" above to select and upload a video file</p>
                 </div>
               )}
             </div>
