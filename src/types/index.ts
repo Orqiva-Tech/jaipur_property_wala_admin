@@ -133,6 +133,15 @@ export interface Blog {
   createdAt: string;
 }
 
+export interface HeroSettings {
+  mediaType: 'images' | 'video';
+  images: string[];
+  videoUrl?: string;
+  badge?: string;
+  title?: string;
+  subtitle?: string;
+}
+
 export interface WebsiteSettings {
   companyName: string;
   logoUrl?: string;
@@ -144,6 +153,7 @@ export interface WebsiteSettings {
   address: string;
   officeTimings: string;
   mapEmbedUrl: string;
+  hero?: HeroSettings;
   stats: {
     yearsExperience: string;
     satisfiedClients: string;

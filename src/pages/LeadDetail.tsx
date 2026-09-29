@@ -119,12 +119,11 @@ We have prime, JDA-approved and RERA-registered plots and projects available mat
 
 Would you be available for a brief discussion or a free site-visit cab tour this week?
 
-Please feel free to reply directly to this email, or call/WhatsApp our senior property advisor at +91 92512 17568.
+Please feel free to reply directly to this email to discuss your requirements.
 
 Warm regards,
 Sales & Customer Relations Team
 Jaipur Property Wala
-Phone: +91 92512 17568
 Email: info@jaipurpropertywala.in
 Website: https://jaipurpropertywala.in`;
 

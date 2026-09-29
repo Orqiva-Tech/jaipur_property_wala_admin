@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Save, CheckCircle2, Phone, MapPin, Mail, Upload, Loader2, Share2, KeyRound, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Save, CheckCircle2, Phone, MapPin, Mail, Upload, Loader2, Share2, KeyRound, Lock, Eye, EyeOff, AlertCircle, Image as ImageIcon, Video, Sparkles, Sliders } from 'lucide-react';
 import { adminService, propertyService } from '../services/api';
 import { WebsiteSettings } from '../types';
 
@@ -11,6 +11,16 @@ export const Settings: React.FC = () => {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [logoError, setLogoError] = useState<string | null>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
+
+  // Hero Media State & Upload Refs
+  const [uploadingHeroImg, setUploadingHeroImg] = useState<number | null>(null);
+  const [uploadingHeroVideo, setUploadingHeroVideo] = useState(false);
+  const heroImageInputRefs = [
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null)
+  ];
+  const heroVideoInputRef = useRef<HTMLInputElement>(null);
 
   // Security / Password State
   const [oldPassword, setOldPassword] = useState('');
@@ -57,6 +67,130 @@ export const Settings: React.FC = () => {
       setUploadingLogo(false);
       if (logoInputRef.current) logoInputRef.current.value = '';
     }
+  };
+
+  const handleHeroImageUpload = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !settings) return;
+    setUploadingHeroImg(index);
+    try {
+      const res = await propertyService.uploadFile(file);
+      if (res.data?.url) {
+        const curHero = settings.hero || {
+          mediaType: 'images',
+          images: [
+            'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=85',
+            'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=2000&q=85',
+            'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=2000&q=85'
+          ],
+          videoUrl: '',
+          badge: '100% JDA & RERA Approved Residential & Commercial Plots',
+          title: 'Discover Verified JDA Approved Plots in Jaipur',
+          subtitle: 'Buy residential and commercial plots starting from ₹15 Lakhs with spot registry and 80% pre-approved bank loans. Prime schemes in Jagatpura, Mahindra SEZ, Tonk Road & Ajmer Expressway.'
+        };
+        const updatedImages = [...(curHero.images || ['', '', ''])];
+        while (updatedImages.length < 3) updatedImages.push('');
+        updatedImages[index] = res.data.url;
+        setSettings({
+          ...settings,
+          hero: {
+            ...curHero,
+            images: updatedImages
+          }
+        });
+      } else {
+        throw new Error('Upload failed');
+      }
+    } catch (err: any) {
+      console.error('Error uploading hero image', err);
+      alert('Failed to upload hero image: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setUploadingHeroImg(null);
+      if (heroImageInputRefs[index].current) {
+        heroImageInputRefs[index].current!.value = '';
+      }
+    }
+  };
+
+  const handleHeroVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !settings) return;
+    setUploadingHeroVideo(true);
+    try {
+      const res = await propertyService.uploadFile(file);
+      if (res.data?.url) {
+        const curHero = settings.hero || {
+          mediaType: 'video',
+          images: [
+            'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=85',
+            'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=2000&q=85',
+            'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=2000&q=85'
+          ],
+          videoUrl: '',
+          badge: '100% JDA & RERA Approved Residential & Commercial Plots',
+          title: 'Discover Verified JDA Approved Plots in Jaipur',
+          subtitle: 'Buy residential and commercial plots starting from ₹15 Lakhs with spot registry and 80% pre-approved bank loans. Prime schemes in Jagatpura, Mahindra SEZ, Tonk Road & Ajmer Expressway.'
+        };
+        setSettings({
+          ...settings,
+          hero: {
+            ...curHero,
+            videoUrl: res.data.url
+          }
+        });
+      } else {
+        throw new Error('Upload failed');
+      }
+    } catch (err: any) {
+      console.error('Error uploading hero video', err);
+      alert('Failed to upload hero video: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setUploadingHeroVideo(false);
+      if (heroVideoInputRef.current) heroVideoInputRef.current.value = '';
+    }
+  };
+
+  const updateHeroField = (field: string, value: any) => {
+    if (!settings) return;
+    const curHero = settings.hero || {
+      mediaType: 'images',
+      images: [
+        'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=85',
+        'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=2000&q=85',
+        'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=2000&q=85'
+      ],
+      videoUrl: '',
+      badge: '100% JDA & RERA Approved Residential & Commercial Plots',
+      title: 'Discover Verified JDA Approved Plots in Jaipur',
+      subtitle: 'Buy residential and commercial plots starting from ₹15 Lakhs with spot registry and 80% pre-approved bank loans. Prime schemes in Jagatpura, Mahindra SEZ, Tonk Road & Ajmer Expressway.'
+    };
+    setSettings({
+      ...settings,
+      hero: {
+        ...curHero,
+        [field]: value
+      }
+    });
+  };
+
+  const updateHeroImage = (index: number, url: string) => {
+    if (!settings) return;
+    const curHero = settings.hero || {
+      mediaType: 'images',
+      images: [
+        'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=85',
+        'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=2000&q=85',
+        'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=2000&q=85'
+      ],
+      videoUrl: '',
+      badge: '100% JDA & RERA Approved Residential & Commercial Plots',
+      title: 'Discover Verified JDA Approved Plots in Jaipur',
+      subtitle: 'Buy residential and commercial plots starting from ₹15 Lakhs with spot registry and 80% pre-approved bank loans. Prime schemes in Jagatpura, Mahindra SEZ, Tonk Road & Ajmer Expressway.'
+    };
+    const updatedImages = [...(curHero.images || ['', '', ''])];
+    while (updatedImages.length < 3) updatedImages.push('');
+    updatedImages[index] = url;
+    updateHeroField('images', updatedImages);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -351,6 +485,251 @@ export const Settings: React.FC = () => {
           </div>
         </div>
 
+        {/* Homepage Hero Banner & Media Card */}
+        <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-xs space-y-5">
+          <div className="border-b border-slate-200 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 flex items-center space-x-2">
+                <Sliders className="w-4 h-4 text-blue-600" />
+                <span>Homepage Hero Banner & Media Controls</span>
+              </h3>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Control whether the public website header displays 3 sliding photos or a looping video, and customize the headline text.
+              </p>
+            </div>
+            
+            {/* Media Type Switcher */}
+            <div className="inline-flex p-1 bg-slate-100 rounded-lg border border-slate-200 self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => updateHeroField('mediaType', 'images')}
+                className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center space-x-1.5 transition-all ${
+                  (settings.hero?.mediaType || 'images') === 'images'
+                    ? 'bg-white text-blue-700 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <ImageIcon className="w-3.5 h-3.5" />
+                <span>3 Photos Carousel</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => updateHeroField('mediaType', 'video')}
+                className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center space-x-1.5 transition-all ${
+                  settings.hero?.mediaType === 'video'
+                    ? 'bg-white text-blue-700 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Video className="w-3.5 h-3.5" />
+                <span>Hero Video</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Conditional Media Slots */}
+          {(settings.hero?.mediaType || 'images') === 'images' ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Carousel Slides (Exactly 3 High-Quality Photos)
+                </span>
+                <span className="text-[11px] text-slate-400">Smooth auto-transition every 5 seconds</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[0, 1, 2].map((idx) => {
+                  const imgList = settings.hero?.images || [
+                    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=85',
+                    'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=2000&q=85',
+                    'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=2000&q=85'
+                  ];
+                  const imgUrl = imgList[idx] || '';
+                  return (
+                    <div key={idx} className="bg-slate-50 rounded-xl p-3.5 border border-slate-200 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-800 flex items-center space-x-1.5">
+                          <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px]">
+                            {idx + 1}
+                          </span>
+                          <span>Slide {idx + 1}</span>
+                        </span>
+                        <input
+                          ref={heroImageInputRefs[idx]}
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleHeroImageUpload(idx, e)}
+                          className="hidden"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => heroImageInputRefs[idx].current?.click()}
+                          disabled={uploadingHeroImg === idx}
+                          className="px-2.5 py-1 text-[11px] font-semibold rounded-md bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 flex items-center space-x-1 shadow-2xs"
+                        >
+                          {uploadingHeroImg === idx ? (
+                            <>
+                              <Loader2 className="w-3 h-3 animate-spin text-blue-600" />
+                              <span>Uploading...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-3 h-3 text-slate-500" />
+                              <span>Upload Photo</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+
+                      {/* Image Preview */}
+                      <div className="relative w-full h-32 rounded-lg overflow-hidden bg-slate-200 border border-slate-300">
+                        {imgUrl ? (
+                          <img
+                            src={imgUrl}
+                            alt={`Hero Slide ${idx + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 text-xs">
+                            <ImageIcon className="w-6 h-6 mb-1 opacity-50" />
+                            <span>No photo set</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* URL Field */}
+                      <div>
+                        <label className="block text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1">
+                          Direct Image URL
+                        </label>
+                        <input
+                          type="text"
+                          value={imgUrl}
+                          onChange={(e) => updateHeroImage(idx, e.target.value)}
+                          placeholder="https://..."
+                          className="w-full p-2 bg-white border border-slate-200 rounded-lg text-[11px] text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 font-mono"
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3 bg-slate-50 rounded-xl p-4 border border-slate-200">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Background Video Configuration
+                </span>
+                <div className="flex items-center gap-2">
+                  <input
+                    ref={heroVideoInputRef}
+                    type="file"
+                    accept="video/*"
+                    onChange={handleHeroVideoUpload}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => heroVideoInputRef.current?.click()}
+                    disabled={uploadingHeroVideo}
+                    className="px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 flex items-center space-x-1.5 shadow-2xs"
+                  >
+                    {uploadingHeroVideo ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Uploading Video...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>Upload Video from Device</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Video URL (Direct MP4 or YouTube Link)
+                </label>
+                <input
+                  type="text"
+                  value={settings.hero?.videoUrl || ''}
+                  onChange={(e) => updateHeroField('videoUrl', e.target.value)}
+                  placeholder="https://... or YouTube URL"
+                  className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none font-mono"
+                />
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Tip: A lightweight 10–30 second HD looping video without audio works best for cinematic hero backgrounds.
+                </p>
+              </div>
+
+              {settings.hero?.videoUrl && (
+                <div className="mt-3 rounded-lg overflow-hidden border border-slate-300 bg-black aspect-video max-w-md mx-auto">
+                  {settings.hero.videoUrl.includes('youtube.com') || settings.hero.videoUrl.includes('youtu.be') ? (
+                    <iframe
+                      src={settings.hero.videoUrl.includes('embed') ? settings.hero.videoUrl : `https://www.youtube.com/embed/${settings.hero.videoUrl.split('v=')[1]?.split('&')[0] || ''}`}
+                      title="Hero Video Preview"
+                      className="w-full h-full"
+                    />
+                  ) : (
+                    <video
+                      src={settings.hero.videoUrl}
+                      controls
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Hero Headlines & Text Content Section */}
+          <div className="pt-3 border-t border-slate-200 space-y-4">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center space-x-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+              <span>Hero Headings & Texts</span>
+            </h4>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Top Pill Badge Text</label>
+                <input
+                  type="text"
+                  value={settings.hero?.badge ?? '100% JDA & RERA Approved Residential & Commercial Plots'}
+                  onChange={(e) => updateHeroField('badge', e.target.value)}
+                  placeholder="e.g. 100% JDA & RERA Approved Residential & Commercial Plots"
+                  className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 rounded-lg text-xs text-slate-900 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Main Heading Title</label>
+                <input
+                  type="text"
+                  value={settings.hero?.title ?? 'Discover Verified JDA Approved Plots in Jaipur'}
+                  onChange={(e) => updateHeroField('title', e.target.value)}
+                  placeholder="Discover Verified JDA Approved Plots in Jaipur"
+                  className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 rounded-lg text-xs text-slate-900 focus:outline-none font-semibold"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Subtitle / Description</label>
+              <textarea
+                rows={2}
+                value={settings.hero?.subtitle ?? 'Buy residential and commercial plots starting from ₹15 Lakhs with spot registry and 80% pre-approved bank loans. Prime schemes in Jagatpura, Mahindra SEZ, Tonk Road & Ajmer Expressway.'}
+                onChange={(e) => updateHeroField('subtitle', e.target.value)}
+                placeholder="Brief narrative shown under the main title on the public homepage..."
+                className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 rounded-lg text-xs text-slate-900 focus:outline-none resize-none"
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Contact Info Card */}
         <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-xs space-y-4">
           <h3 className="text-sm font-bold text-slate-900 border-b border-slate-200 pb-3">
@@ -359,21 +738,21 @@ export const Settings: React.FC = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Helpline Phone *</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Helpline Phone</label>
               <input
                 type="text"
-                required
-                value={settings.phone}
+                value={settings.phone || ''}
+                placeholder="0-9"
                 onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
                 className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none shadow-xs"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">WhatsApp Direct *</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">WhatsApp Direct</label>
               <input
                 type="text"
-                required
-                value={settings.whatsapp}
+                value={settings.whatsapp || ''}
+                placeholder="0-9"
                 onChange={(e) => setSettings({ ...settings, whatsapp: e.target.value })}
                 className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none shadow-xs"
               />
