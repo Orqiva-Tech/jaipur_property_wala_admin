@@ -165,7 +165,7 @@ export const Properties: React.FC = () => {
   const fetchProperties = async () => {
     setLoading(true);
     try {
-      const params: any = {};
+      const params: any = { limit: 'all' };
       if (search) params.search = search;
       if (selectedCityTab !== 'All') params.city = selectedCityTab;
       const res = await propertyService.getAll(params);
