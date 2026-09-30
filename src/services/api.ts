@@ -72,18 +72,23 @@ export const propertyService = {
   }),
   delete: (id: string) => api.delete(`/properties/${id}`),
   uploadFile: async (file: File, onProgress?: (percent: number) => void) => {
-    // Strategy 1: Direct Cloudinary CDN Upload (only for images under 40MB; videos and large files go straight to server)
+    // Strategy 1: Direct Cloudinary CDN Upload (supports images and videos up to 95MB)
+    // This completely bypasses server/Nginx reverse proxy limits on live production
     const isVideo = file.type.startsWith('video');
-    const isLarge = file.size > 40 * 1024 * 1024;
+    const isUnderCloudinaryLimit = file.size <= 95 * 1024 * 1024; // 95MB max for unsigned Cloudinary
 
-    if (!isVideo && !isLarge) {
+    if (isUnderCloudinaryLimit) {
       try {
         const cloudData = new FormData();
         cloudData.append('file', file);
         cloudData.append('upload_preset', 'jaipur_property_wala_uploads');
 
+        const uploadEndpoint = isVideo
+          ? 'https://api.cloudinary.com/v1_1/ripzq8zx/video/upload'
+          : 'https://api.cloudinary.com/v1_1/ripzq8zx/auto/upload';
+
         const cloudRes = await axios.post(
-          'https://api.cloudinary.com/v1_1/ripzq8zx/auto/upload',
+          uploadEndpoint,
           cloudData,
           {
             timeout: 0,

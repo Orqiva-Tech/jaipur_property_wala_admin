@@ -117,6 +117,13 @@ export const Settings: React.FC = () => {
   const handleHeroVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !settings) return;
+
+    if (file.size > 95 * 1024 * 1024) {
+      alert(`The selected video is ${(file.size / (1024 * 1024)).toFixed(1)}MB. For fast web playback and CDN compatibility, please select a web-optimized video under 95MB (such as 'Manglam-Hero-Web-Optimized.mp4').`);
+      if (heroVideoInputRef.current) heroVideoInputRef.current.value = '';
+      return;
+    }
+
     setUploadingHeroVideo(true);
     setVideoProgress(0);
     try {
