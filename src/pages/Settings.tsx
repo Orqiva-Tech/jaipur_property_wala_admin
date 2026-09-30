@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Save, CheckCircle2, Phone, MapPin, Mail, Upload, Loader2, Share2, KeyRound, Lock, Eye, EyeOff, AlertCircle, Image as ImageIcon, Video, Sparkles, Sliders } from 'lucide-react';
-import { adminService, propertyService } from '../services/api';
+import { adminService, propertyService, formatImageUrl } from '../services/api';
 import { WebsiteSettings } from '../types';
 
 export const Settings: React.FC = () => {
@@ -666,7 +666,7 @@ export const Settings: React.FC = () => {
               {settings.hero?.videoUrl ? (
                 <div className="relative rounded-xl overflow-hidden border border-slate-300 bg-black aspect-video max-w-lg mx-auto shadow-md">
                   <video
-                    src={settings.hero.videoUrl}
+                    src={formatImageUrl(settings.hero.videoUrl)}
                     controls
                     autoPlay
                     loop
