@@ -733,7 +733,7 @@ export const Settings: React.FC = () => {
             Primary Helpline & Communications
           </h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">Helpline Phone</label>
               <input
@@ -741,6 +741,16 @@ export const Settings: React.FC = () => {
                 value={settings.phone || ''}
                 placeholder="0-9"
                 onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
+                className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none shadow-xs"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Alternate Phone</label>
+              <input
+                type="text"
+                value={settings.alternatePhone || ''}
+                placeholder="0-9"
+                onChange={(e) => setSettings({ ...settings, alternatePhone: e.target.value })}
                 className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none shadow-xs"
               />
             </div>
