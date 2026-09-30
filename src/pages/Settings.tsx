@@ -96,6 +96,7 @@ export const Settings: React.FC = () => {
           ...settings,
           hero: {
             ...curHero,
+            mediaType: 'images',
             images: updatedImages
           }
         });
@@ -139,6 +140,7 @@ export const Settings: React.FC = () => {
           ...settings,
           hero: {
             ...curHero,
+            mediaType: 'video',
             videoUrl: res.data.url
           }
         });
@@ -723,6 +725,18 @@ export const Settings: React.FC = () => {
                 placeholder="Brief narrative shown under the main title on the public homepage..."
                 className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 rounded-lg text-xs text-slate-900 focus:outline-none resize-none"
               />
+            </div>
+
+            <div className="flex justify-end pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={saving}
+                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs transition-colors flex items-center space-x-1.5"
+              >
+                <Save className="w-3.5 h-3.5" />
+                <span>{saving ? 'Saving...' : 'Save Hero Settings'}</span>
+              </button>
             </div>
           </div>
         </div>
