@@ -72,38 +72,43 @@ export const propertyService = {
   }),
   delete: (id: string) => api.delete(`/properties/${id}`),
   uploadFile: async (file: File, onProgress?: (percent: number) => void) => {
-    // Strategy 1: Direct Cloudinary CDN Upload (Bypasses Nginx 413 size limits & Network Errors, extremely fast globally)
-    try {
-      const cloudData = new FormData();
-      cloudData.append('file', file);
-      cloudData.append('upload_preset', 'jaipur_property_wala_uploads');
+    // Strategy 1: Direct Cloudinary CDN Upload (only for images under 40MB; videos and large files go straight to server)
+    const isVideo = file.type.startsWith('video');
+    const isLarge = file.size > 40 * 1024 * 1024;
 
-      const cloudRes = await axios.post(
-        'https://api.cloudinary.com/v1_1/ripzq8zx/auto/upload',
-        cloudData,
-        {
-          timeout: 0,
-          onUploadProgress: (progressEvent) => {
-            if (progressEvent.total && onProgress) {
-              const percent = Math.min(99, Math.round((progressEvent.loaded * 100) / progressEvent.total));
-              onProgress(percent);
+    if (!isVideo && !isLarge) {
+      try {
+        const cloudData = new FormData();
+        cloudData.append('file', file);
+        cloudData.append('upload_preset', 'jaipur_property_wala_uploads');
+
+        const cloudRes = await axios.post(
+          'https://api.cloudinary.com/v1_1/ripzq8zx/auto/upload',
+          cloudData,
+          {
+            timeout: 0,
+            onUploadProgress: (progressEvent) => {
+              if (progressEvent.total && onProgress) {
+                const percent = Math.min(99, Math.round((progressEvent.loaded * 100) / progressEvent.total));
+                onProgress(percent);
+              }
             }
           }
-        }
-      );
+        );
 
-      if (cloudRes.data?.secure_url) {
-        if (onProgress) onProgress(100);
-        return {
-          data: {
-            url: cloudRes.data.secure_url,
-            public_id: cloudRes.data.public_id,
-            filename: file.name
-          }
-        };
+        if (cloudRes.data?.secure_url) {
+          if (onProgress) onProgress(100);
+          return {
+            data: {
+              url: cloudRes.data.secure_url,
+              public_id: cloudRes.data.public_id,
+              filename: file.name
+            }
+          };
+        }
+      } catch (directErr: any) {
+        console.warn('[Direct Cloudinary upload attempt failed, falling back to server API]', directErr?.message || directErr);
       }
-    } catch (directErr: any) {
-      console.warn('[Direct Cloudinary upload attempt failed, falling back to server API]', directErr?.message || directErr);
     }
 
     // Strategy 2: Server API endpoint fallback
