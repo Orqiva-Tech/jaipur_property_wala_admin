@@ -208,7 +208,7 @@ export const Leads: React.FC = () => {
 
       {/* Table */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto w-full">
+        <div className="overflow-x-auto w-full min-h-[320px] pb-14">
           <table className="w-full min-w-[850px] text-left text-xs text-slate-700">
             <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold text-[11px] border-b border-slate-200">
               <tr>
@@ -232,7 +232,9 @@ export const Leads: React.FC = () => {
                   <td colSpan={8} className="p-12 text-center text-slate-400">No leads found matching your search.</td>
                 </tr>
               ) : (
-                paginatedLeads.map((lead) => (
+                paginatedLeads.map((lead, idx) => {
+                  const openUpward = idx >= 1;
+                  return (
                   <tr key={lead._id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="p-4 font-semibold text-slate-900">
                       <Link
@@ -322,14 +324,16 @@ export const Leads: React.FC = () => {
                           <>
                             {/* Backdrop to close on click outside */}
                             <div
-                              className="fixed inset-0 z-20 cursor-default"
+                              className="fixed inset-0 z-40 cursor-default"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setActiveDropdownId(null);
                               }}
                             />
                             <div
-                              className="absolute right-0 mt-1.5 w-40 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-30 animate-in fade-in zoom-in-95 duration-100 text-left"
+                              className={`absolute right-0 ${
+                                openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+                              } w-44 bg-white rounded-xl shadow-2xl border border-slate-200 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 text-left`}
                             >
                               <button
                                 type="button"
@@ -364,7 +368,8 @@ export const Leads: React.FC = () => {
                       </div>
                     </td>
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>
