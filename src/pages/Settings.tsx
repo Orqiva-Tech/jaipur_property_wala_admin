@@ -1,7 +1,32 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Save, CheckCircle2, Phone, MapPin, Mail, Upload, Loader2, Share2, KeyRound, Lock, Eye, EyeOff, AlertCircle, Image as ImageIcon, Video, Sparkles, Sliders } from 'lucide-react';
+import { Save, CheckCircle2, Phone, MapPin, Mail, Upload, Loader2, Share2, KeyRound, Lock, Eye, EyeOff, AlertCircle, Image as ImageIcon, Video, Sparkles, Sliders, Award, Plus, Trash2 } from 'lucide-react';
 import { adminService, propertyService, formatImageUrl } from '../services/api';
 import { WebsiteSettings } from '../types';
+
+const defaultAboutSection = {
+  badge: 'About Our Company',
+  title: 'Why Choose Jaipur Property Wala?',
+  description: 'Jaipur Property Wala (Jaipur JDA Plots Colonizers & Developers) has established an unmatched benchmark of credibility across Rajasthan. We protect your hard-earned investment by offering only clear-title, JDA-approved schemes with direct spot registry and zero hidden charges.',
+  image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1000&q=80',
+  imageTag: 'Authentic Jaipur Roots',
+  imageQuote: '“Estate brings together all the essentials of modern living with features that ensure comfort, safety, and lasting value.”',
+  experienceYears: '20+ Years',
+  experienceText: 'Pioneering Safe JDA Land Ownership in Jaipur',
+  points: [
+    {
+      title: 'Guaranteed Capital Appreciation:',
+      description: 'Planned JDA sectors in Jagatpura, SEZ, and Tonk Road have consistently generated high capital gains.'
+    },
+    {
+      title: 'Total Construction Flexibility:',
+      description: 'Construct your custom dream villa immediately, lease commercial spaces, or hold the clear-title plot for your family.'
+    },
+    {
+      title: '100% Security & 80% Bank Loan:',
+      description: 'All properties feature complete 90-A revenue conversion with instant loans supported by SBI, HDFC, and ICICI.'
+    }
+  ]
+};
 
 export const Settings: React.FC = () => {
   const [settings, setSettings] = useState<WebsiteSettings | null>(null);
@@ -11,6 +36,10 @@ export const Settings: React.FC = () => {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [logoError, setLogoError] = useState<string | null>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
+
+  // About Company Section State & Ref
+  const [uploadingAboutImg, setUploadingAboutImg] = useState(false);
+  const aboutImgInputRef = useRef<HTMLInputElement>(null);
 
   // Hero Media State & Upload Refs
   const [uploadingHeroImg, setUploadingHeroImg] = useState<number | null>(null);
@@ -205,6 +234,63 @@ export const Settings: React.FC = () => {
     while (updatedImages.length < 3) updatedImages.push('');
     updatedImages[index] = url;
     updateHeroField('images', updatedImages);
+  };
+
+  const handleAboutImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !settings) return;
+    setUploadingAboutImg(true);
+    try {
+      const res = await propertyService.uploadFile(file);
+      if (res.data?.url) {
+        updateAboutField('image', res.data.url);
+      } else {
+        throw new Error('Upload failed');
+      }
+    } catch (err: any) {
+      console.error('Error uploading about image', err);
+      alert('Failed to upload image: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setUploadingAboutImg(false);
+      if (aboutImgInputRef.current) aboutImgInputRef.current.value = '';
+    }
+  };
+
+  const updateAboutField = (field: string, value: any) => {
+    if (!settings) return;
+    const curAbout = settings.aboutSection || defaultAboutSection;
+    setSettings({
+      ...settings,
+      aboutSection: {
+        ...curAbout,
+        [field]: value
+      }
+    });
+  };
+
+  const updateAboutPoint = (index: number, field: 'title' | 'description', value: string) => {
+    if (!settings) return;
+    const curAbout = settings.aboutSection || defaultAboutSection;
+    const points = [...(curAbout.points || defaultAboutSection.points)];
+    if (points[index]) {
+      points[index] = { ...points[index], [field]: value };
+      updateAboutField('points', points);
+    }
+  };
+
+  const addAboutPoint = () => {
+    if (!settings) return;
+    const curAbout = settings.aboutSection || defaultAboutSection;
+    const points = [...(curAbout.points || defaultAboutSection.points)];
+    points.push({ title: 'New Advantage Point:', description: 'Describe the feature or benefit...' });
+    updateAboutField('points', points);
+  };
+
+  const removeAboutPoint = (index: number) => {
+    if (!settings) return;
+    const curAbout = settings.aboutSection || defaultAboutSection;
+    const points = (curAbout.points || defaultAboutSection.points).filter((_, i) => i !== index);
+    updateAboutField('points', points);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -746,6 +832,256 @@ export const Settings: React.FC = () => {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Homepage About Company / Why Choose Us Section Card */}
+        <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-xs space-y-5">
+          <div className="border-b border-slate-200 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 flex items-center space-x-2">
+                <Award className="w-4 h-4 text-amber-600" />
+                <span>Homepage "Why Choose Us / About Company" Section</span>
+              </h3>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Customize the presentation image, headline, brand story, experience badge, and key value propositions displayed on the public homepage.
+              </p>
+            </div>
+            <span className="text-[11px] font-semibold px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg self-start sm:self-auto">
+              Dynamic Homepage Section
+            </span>
+          </div>
+
+          {(() => {
+            const curAbout = settings.aboutSection || defaultAboutSection;
+            const points = curAbout.points || defaultAboutSection.points;
+            return (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                  {/* Left Column: Image & Image Overlay Badges */}
+                  <div className="lg:col-span-5 space-y-4">
+                    <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-700">Section Presentation Image</span>
+                        {uploadingAboutImg && (
+                          <span className="text-[11px] text-blue-600 flex items-center space-x-1">
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            <span>Uploading...</span>
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Image Preview with overlay mockup */}
+                      <div className="relative rounded-xl overflow-hidden aspect-[4/3] bg-slate-900 border border-slate-300 shadow-inner group">
+                        <img
+                          src={formatImageUrl(curAbout.image || defaultAboutSection.image)}
+                          alt="About Section Preview"
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
+                        <div className="absolute bottom-3 left-3 right-3 text-white space-y-0.5 pointer-events-none">
+                          <span className="text-[9px] uppercase tracking-wider text-amber-400 font-bold block truncate">
+                            {curAbout.imageTag || 'Authentic Jaipur Roots'}
+                          </span>
+                          <p className="text-[10px] italic leading-tight text-slate-200 line-clamp-2">
+                            {curAbout.imageQuote || '“Estate brings together all the essentials of modern living...”'}
+                          </p>
+                        </div>
+                        <div className="absolute bottom-2 right-2 bg-slate-950/90 text-white p-2 rounded-lg border border-amber-400/50 max-w-[120px] pointer-events-none">
+                          <span className="text-xs font-bold text-amber-400 block">{curAbout.experienceYears || '20+ Years'}</span>
+                          <span className="text-[8px] text-slate-300 block line-clamp-1">{curAbout.experienceText || 'Safe JDA Land Ownership'}</span>
+                        </div>
+                      </div>
+
+                      {/* Upload Button & Direct URL */}
+                      <div className="space-y-2">
+                        <input
+                          type="file"
+                          ref={aboutImgInputRef}
+                          onChange={handleAboutImageUpload}
+                          accept="image/*"
+                          className="hidden"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => aboutImgInputRef.current?.click()}
+                          disabled={uploadingAboutImg}
+                          className="w-full py-2 px-3 bg-white border border-slate-300 hover:border-blue-500 hover:bg-blue-50/50 text-slate-700 hover:text-blue-700 rounded-lg text-xs font-semibold flex items-center justify-center space-x-1.5 transition-colors shadow-xs"
+                        >
+                          <Upload className="w-3.5 h-3.5 text-slate-500" />
+                          <span>{uploadingAboutImg ? 'Uploading New Image...' : 'Upload Image from Computer'}</span>
+                        </button>
+
+                        <div>
+                          <label className="block text-[11px] font-semibold text-slate-600 mb-1">Or Image CDN URL</label>
+                          <input
+                            type="text"
+                            value={curAbout.image || ''}
+                            onChange={(e) => updateAboutField('image', e.target.value)}
+                            placeholder="https://..."
+                            className="w-full p-2 bg-white border border-slate-300 focus:border-blue-500 rounded-lg text-xs text-slate-800"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Overlay text fields */}
+                      <div className="pt-2 border-t border-slate-200 space-y-3">
+                        <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-600">Overlay Badge & Quotes</h4>
+                        <div>
+                          <label className="block text-[11px] font-semibold text-slate-600 mb-1">Image Tagline</label>
+                          <input
+                            type="text"
+                            value={curAbout.imageTag ?? 'Authentic Jaipur Roots'}
+                            onChange={(e) => updateAboutField('imageTag', e.target.value)}
+                            placeholder="Authentic Jaipur Roots"
+                            className="w-full p-2 bg-white border border-slate-300 focus:border-blue-500 rounded-lg text-xs text-slate-800"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-semibold text-slate-600 mb-1">Image Quote</label>
+                          <textarea
+                            rows={2}
+                            value={curAbout.imageQuote ?? '“Estate brings together all the essentials of modern living with features that ensure comfort, safety, and lasting value.”'}
+                            onChange={(e) => updateAboutField('imageQuote', e.target.value)}
+                            placeholder="Quote text..."
+                            className="w-full p-2 bg-white border border-slate-300 focus:border-blue-500 rounded-lg text-xs text-slate-800 resize-none"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-[11px] font-semibold text-slate-600 mb-1">Badge Years</label>
+                            <input
+                              type="text"
+                              value={curAbout.experienceYears ?? '20+ Years'}
+                              onChange={(e) => updateAboutField('experienceYears', e.target.value)}
+                              placeholder="20+ Years"
+                              className="w-full p-2 bg-white border border-slate-300 focus:border-blue-500 rounded-lg text-xs text-slate-800"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[11px] font-semibold text-slate-600 mb-1">Badge Subtitle</label>
+                            <input
+                              type="text"
+                              value={curAbout.experienceText ?? 'Pioneering Safe JDA Land Ownership in Jaipur'}
+                              onChange={(e) => updateAboutField('experienceText', e.target.value)}
+                              placeholder="Pioneering Safe JDA Land Ownership"
+                              className="w-full p-2 bg-white border border-slate-300 focus:border-blue-500 rounded-lg text-xs text-slate-800"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Titles, Descriptions, Bullet Points */}
+                  <div className="lg:col-span-7 space-y-4">
+                    <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Section Pill Badge</label>
+                          <input
+                            type="text"
+                            value={curAbout.badge ?? 'About Our Company'}
+                            onChange={(e) => updateAboutField('badge', e.target.value)}
+                            placeholder="About Our Company"
+                            className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 rounded-lg text-xs text-slate-900 font-semibold"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Main Section Title</label>
+                          <input
+                            type="text"
+                            value={curAbout.title ?? 'Why Choose Jaipur Property Wala?'}
+                            onChange={(e) => updateAboutField('title', e.target.value)}
+                            placeholder="Why Choose Jaipur Property Wala?"
+                            className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 rounded-lg text-xs text-slate-900 font-semibold"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Story / Narrative Paragraph</label>
+                        <textarea
+                          rows={4}
+                          value={curAbout.description ?? ''}
+                          onChange={(e) => updateAboutField('description', e.target.value)}
+                          placeholder="Comprehensive description of the company, credibility, and JDA approval assurance..."
+                          className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 rounded-lg text-xs text-slate-900 resize-none"
+                        />
+                      </div>
+
+                      {/* Key Highlight / Bullet Points */}
+                      <div className="space-y-3 pt-2 border-t border-slate-200">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-xs font-bold uppercase tracking-wider text-slate-700">Key Advantage Points (Checklist)</span>
+                            <p className="text-[11px] text-slate-500">Add or edit the key highlights shown with checkmarks</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={addAboutPoint}
+                            className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-semibold flex items-center space-x-1 transition-colors"
+                          >
+                            <Plus className="w-3 h-3" />
+                            <span>Add Point</span>
+                          </button>
+                        </div>
+
+                        <div className="space-y-3">
+                          {points.map((pt: any, idx: number) => (
+                            <div key={idx} className="bg-white p-3 rounded-lg border border-slate-200 space-y-2 relative shadow-xs">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                                  Point #{idx + 1}
+                                </span>
+                                {points.length > 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => removeAboutPoint(idx)}
+                                    className="p-1 text-slate-400 hover:text-red-600 transition-colors"
+                                    title="Delete Point"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </div>
+                              <input
+                                type="text"
+                                value={pt.title}
+                                onChange={(e) => updateAboutPoint(idx, 'title', e.target.value)}
+                                placeholder="Heading (e.g. Guaranteed Capital Appreciation:)"
+                                className="w-full p-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-md text-xs text-slate-900 font-semibold"
+                              />
+                              <textarea
+                                rows={2}
+                                value={pt.description}
+                                onChange={(e) => updateAboutPoint(idx, 'description', e.target.value)}
+                                placeholder="Brief explanation of this advantage..."
+                                className="w-full p-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-md text-xs text-slate-700 resize-none"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end pt-2">
+                      <button
+                        type="button"
+                        onClick={handleSubmit}
+                        disabled={saving}
+                        className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs transition-colors flex items-center space-x-1.5"
+                      >
+                        <Save className="w-3.5 h-3.5" />
+                        <span>{saving ? 'Saving...' : 'Save About Section Settings'}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Contact Info Card */}
