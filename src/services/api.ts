@@ -1,10 +1,6 @@
 import axios from 'axios';
 
-const isLocal = typeof window !== 'undefined' && 
-  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-
 const rawApiUrl = (
-  (isLocal ? 'http://localhost:5050' : '') ||
   import.meta.env.VITE_API_URL ||
   import.meta.env.VITE_API_BASE_URL ||
   'https://api.jaipurpropertywala.in'
