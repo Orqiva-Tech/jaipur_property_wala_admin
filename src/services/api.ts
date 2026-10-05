@@ -185,10 +185,96 @@ export const galleryService = {
     }
     return api.get('/gallery', { params });
   },
-  create: (formData: FormData) => api.post('/gallery', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-    timeout: 300000 // 5 minutes for video uploads
-  }),
+  uploadMedia: async (file: File, onProgress?: (percent: number) => void): Promise<{ url: string; public_id?: string; resource_type?: string }> => {
+    // Strategy 1: Direct Cloudinary CDN Upload (supports images and videos up to 100MB)
+    // This completely bypasses server/Nginx reverse proxy limits on live production
+    const isVideo = file.type.startsWith('video') || /\.(mp4|mov|webm|mkv|avi|m4v|3gp)$/i.test(file.name);
+    const isUnderCloudinaryLimit = file.size <= 100 * 1024 * 1024; // 100MB max for direct Cloudinary
+
+    if (isUnderCloudinaryLimit) {
+      try {
+        const cloudData = new FormData();
+        cloudData.append('file', file);
+        cloudData.append('upload_preset', 'jaipur_property_wala_uploads');
+        cloudData.append('folder', 'jaipur_property_wala/gallery');
+
+        const uploadEndpoint = isVideo
+          ? 'https://api.cloudinary.com/v1_1/ripzq8zx/video/upload'
+          : 'https://api.cloudinary.com/v1_1/ripzq8zx/auto/upload';
+
+        const cloudRes = await axios.post(
+          uploadEndpoint,
+          cloudData,
+          {
+            timeout: 0,
+            onUploadProgress: (progressEvent) => {
+              if (progressEvent.total && onProgress) {
+                const percent = Math.min(99, Math.round((progressEvent.loaded * 100) / progressEvent.total));
+                onProgress(percent);
+              }
+            }
+          }
+        );
+
+        if (cloudRes.data?.secure_url) {
+          if (onProgress) onProgress(100);
+          return {
+            url: cloudRes.data.secure_url,
+            public_id: cloudRes.data.public_id,
+            resource_type: isVideo ? 'video' : 'image'
+          };
+        }
+      } catch (directErr: any) {
+        console.warn('[Direct Cloudinary gallery upload failed, checking fallback]', directErr?.message || directErr);
+      }
+    }
+
+    // Fallback: If direct upload didn't succeed or was over limit, try server
+    const data = new FormData();
+    data.append('media', file);
+    const res = await api.post('/gallery', data, {
+      timeout: 0,
+      onUploadProgress: (progressEvent) => {
+        if (progressEvent.total && onProgress) {
+          const percent = Math.min(99, Math.round((progressEvent.loaded * 100) / progressEvent.total));
+          onProgress(percent);
+        }
+      }
+    });
+    return {
+      url: res.data?.data?.mediaUrl || res.data?.url
+    };
+  },
+  create: async (data: FormData | Record<string, any>, onProgress?: (percent: number) => void) => {
+    // If it's a plain JS object
+    if (!(data instanceof FormData)) {
+      return api.post('/gallery', data);
+    }
+
+    // If it's FormData, check if a File is attached in 'media' or 'file'
+    const file = (data.get('media') || data.get('file')) as File | null;
+    if (file && typeof file === 'object' && 'size' in file && file.size > 0) {
+      try {
+        const uploadResult = await galleryService.uploadMedia(file, onProgress);
+        if (uploadResult?.url) {
+          const payload: Record<string, any> = {};
+          data.forEach((val, key) => {
+            if (key !== 'media' && key !== 'file') {
+              payload[key] = val;
+            }
+          });
+          payload.mediaUrl = uploadResult.url;
+          return api.post('/gallery', payload);
+        }
+      } catch (err) {
+        console.warn('[Gallery FormData direct upload fallback]', err);
+      }
+    }
+
+    return api.post('/gallery', data, {
+      timeout: 300000
+    });
+  },
   delete: (id: string) => api.delete(`/gallery/${id}`)
 };
 

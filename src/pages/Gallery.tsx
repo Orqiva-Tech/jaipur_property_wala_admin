@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Trash2, Image, Play, MapPin, Filter, Check, AlertCircle, X, Upload } from 'lucide-react';
+import { Plus, Trash2, Image, Play, MapPin, Filter, Check, AlertCircle, X, Upload, Eye, ExternalLink } from 'lucide-react';
 import { galleryService, locationService, formatImageUrl } from '../services/api';
 import { GalleryItem, LocationItem } from '../types';
 
@@ -8,6 +8,7 @@ export const Gallery: React.FC = () => {
   const [locations, setLocations] = useState<LocationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPreviewItem, setSelectedPreviewItem] = useState<GalleryItem | null>(null);
   const [selectedCityFilter, setSelectedCityFilter] = useState('All');
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -21,6 +22,8 @@ export const Gallery: React.FC = () => {
   const [projectName, setProjectName] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadPhase, setUploadPhase] = useState<'idle' | 'uploading' | 'saving'>('idle');
   const [currentPage, setCurrentPage] = useState(1);
 
   const itemsPerPage = 9;
@@ -91,22 +94,45 @@ export const Gallery: React.FC = () => {
       return;
     }
 
+    if (selectedFile && selectedFile.size > 100 * 1024 * 1024) {
+      setErrorMessage(`File is too large (${(selectedFile.size / 1024 / 1024).toFixed(1)}MB). Direct upload limit is 100MB. Please compress your video or use a YouTube URL.`);
+      return;
+    }
+
     setSubmitting(true);
     setErrorMessage(null);
+    setUploadProgress(0);
+    setUploadPhase('uploading');
 
     try {
-      const formData = new FormData();
-      formData.append('title', title.trim());
-      formData.append('category', category);
-      formData.append('mediaType', mediaType);
-      formData.append('location', location);
-      if (caption) formData.append('caption', caption.trim());
-      if (projectName) formData.append('projectName', projectName.trim());
-      if (mediaUrl) formData.append('mediaUrl', mediaUrl.trim());
-      if (selectedFile) formData.append('media', selectedFile);
+      let finalMediaUrl = mediaUrl.trim();
 
-      await galleryService.create(formData);
-      setSuccessMessage('Media item published successfully!');
+      if (selectedFile) {
+        // Direct Cloudinary CDN Upload — 100% bypasses Nginx reverse proxy 1MB limit & eliminates Network Error!
+        const uploadRes = await galleryService.uploadMedia(selectedFile, (percent) => {
+          setUploadProgress(percent);
+        });
+
+        if (!uploadRes?.url) {
+          throw new Error('Failed to obtain uploaded media URL from CDN.');
+        }
+        finalMediaUrl = uploadRes.url;
+      }
+
+      setUploadPhase('saving');
+
+      // Save gallery item via lightweight JSON request
+      await galleryService.create({
+        title: title.trim() || (selectedFile ? selectedFile.name.replace(/\.[^/.]+$/, '') : 'Media Item'),
+        category,
+        mediaType,
+        location,
+        caption: caption.trim(),
+        projectName: projectName.trim(),
+        mediaUrl: finalMediaUrl
+      });
+
+      setSuccessMessage(`${mediaType === 'video' ? 'Video' : 'Photo'} published to gallery successfully!`);
       setTimeout(() => setSuccessMessage(null), 3500);
 
       setIsModalOpen(false);
@@ -115,6 +141,8 @@ export const Gallery: React.FC = () => {
       setProjectName('');
       setMediaUrl('');
       setSelectedFile(null);
+      setUploadProgress(0);
+      setUploadPhase('idle');
       fetchItems();
     } catch (err: any) {
       console.error('Gallery submit error:', err);
@@ -122,6 +150,7 @@ export const Gallery: React.FC = () => {
       setErrorMessage(serverMessage);
     } finally {
       setSubmitting(false);
+      setUploadPhase('idle');
     }
   };
 
@@ -210,30 +239,34 @@ export const Gallery: React.FC = () => {
               const thumbSrc = item.thumbnailUrl ? formatImageUrl(item.thumbnailUrl) : '';
               return (
                 <div key={item._id} className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all group">
-                  <div className="relative aspect-[4/3] bg-slate-900 overflow-hidden">
+                  <div
+                    onClick={() => setSelectedPreviewItem(item)}
+                    className="relative aspect-[4/3] bg-slate-900 overflow-hidden cursor-pointer select-none group/media"
+                    title={item.mediaType === 'video' ? 'Click to play video' : 'Click to view photo'}
+                  >
                     {item.mediaType === 'video' ? (
                       <div className="w-full h-full flex items-center justify-center relative">
                         {thumbSrc && (
                           <img
                             src={thumbSrc}
                             alt=""
-                            className="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-300"
+                            className="w-full h-full object-cover opacity-70 group-hover/media:opacity-90 group-hover/media:scale-105 transition-all duration-300"
                           />
                         )}
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-11 h-11 rounded-full bg-blue-600/90 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover/media:bg-black/10 transition-colors">
+                          <div className="w-12 h-12 rounded-full bg-blue-600/90 hover:bg-blue-600 text-white flex items-center justify-center shadow-lg group-hover/media:scale-110 transition-transform">
                             <Play className="w-5 h-5 fill-current ml-0.5" />
                           </div>
                         </div>
                       </div>
                     ) : (
-                      <img src={src} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      <img src={src} alt="" className="w-full h-full object-cover group-hover/media:scale-105 transition-transform duration-300" />
                     )}
-                    <span className="absolute top-2 left-2 bg-slate-900/80 text-white text-[10px] font-semibold px-2 py-0.5 rounded shadow-xs">
+                    <span className="absolute top-2 left-2 bg-slate-900/80 text-white text-[10px] font-semibold px-2 py-0.5 rounded shadow-xs pointer-events-none">
                       {item.category}
                     </span>
                     {item.location && (
-                      <span className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-xs text-slate-800 text-[10px] font-medium px-2 py-0.5 rounded shadow-xs flex items-center space-x-1">
+                      <span className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-xs text-slate-800 text-[10px] font-medium px-2 py-0.5 rounded shadow-xs flex items-center space-x-1 pointer-events-none">
                         <MapPin className="w-3 h-3 text-blue-600" />
                         <span>{item.location}</span>
                       </span>
@@ -241,10 +274,33 @@ export const Gallery: React.FC = () => {
                   </div>
 
                   <div className="p-3.5 space-y-2">
-                    <h4 className="text-xs font-bold text-slate-900 line-clamp-1">{item.title}</h4>
+                    <h4
+                      onClick={() => setSelectedPreviewItem(item)}
+                      className="text-xs font-bold text-slate-900 line-clamp-1 cursor-pointer hover:text-blue-600 transition-colors"
+                      title={item.title}
+                    >
+                      {item.title}
+                    </h4>
                     <p className="text-[11px] text-slate-500 line-clamp-1">{item.caption || item.projectName || 'Verified Scheme'}</p>
 
-                    <div className="pt-2 border-t border-slate-100 flex justify-end">
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPreviewItem(item)}
+                        className="text-blue-600 hover:text-blue-700 text-xs font-semibold flex items-center space-x-1.5 cursor-pointer py-1 px-2 -ml-2 rounded-lg hover:bg-blue-50 transition-colors"
+                      >
+                        {item.mediaType === 'video' ? (
+                          <>
+                            <Play className="w-3.5 h-3.5 fill-current" />
+                            <span>Play Video</span>
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>View Photo</span>
+                          </>
+                        )}
+                      </button>
                       <button
                         type="button"
                         onClick={() => setDeleteConfirmItem(item)}
@@ -446,7 +502,12 @@ export const Gallery: React.FC = () => {
                       onChange={(e) => {
                         if (e.target.files && e.target.files[0]) {
                           const file = e.target.files[0];
+                          if (file.size > 100 * 1024 * 1024) {
+                            setErrorMessage(`Selected file is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum allowed video upload size is 100MB.`);
+                            return;
+                          }
                           setSelectedFile(file);
+                          setErrorMessage(null);
                           if (file.type.startsWith('video/') || /\.(mp4|mov|webm|mkv|avi|m4v|3gp)$/i.test(file.name)) {
                             setMediaType('video');
                             if (category === 'Project Photos') {
@@ -458,6 +519,30 @@ export const Gallery: React.FC = () => {
                       className="hidden"
                     />
                   </label>
+                )}
+
+                {/* Upload Progress Bar */}
+                {submitting && uploadPhase === 'uploading' && (
+                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-xl space-y-1.5 animate-pulse">
+                    <div className="flex items-center justify-between text-xs font-bold text-blue-900">
+                      <span>Uploading {mediaType === 'video' ? 'video' : 'photo'} directly to Cloud CDN...</span>
+                      <span>{uploadProgress}%</span>
+                    </div>
+                    <div className="w-full bg-blue-200 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${Math.max(5, uploadProgress)}%` }}
+                      />
+                    </div>
+                    <p className="text-[11px] text-blue-700">Bypassing proxy limits — fast cloud upload in progress...</p>
+                  </div>
+                )}
+
+                {submitting && uploadPhase === 'saving' && (
+                  <div className="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center space-x-2 text-xs font-semibold text-emerald-800">
+                    <div className="w-4 h-4 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin shrink-0" />
+                    <span>Upload complete! Finalizing gallery record...</span>
+                  </div>
                 )}
 
                 <div className="mt-2">
@@ -488,7 +573,13 @@ export const Gallery: React.FC = () => {
                   {submitting && (
                     <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   )}
-                  <span>{submitting ? 'Uploading & Processing...' : 'Add to Gallery'}</span>
+                  <span>
+                    {submitting
+                      ? (uploadPhase === 'uploading'
+                          ? `Uploading (${uploadProgress}%)...`
+                          : 'Publishing to Gallery...')
+                      : 'Add to Gallery'}
+                  </span>
                 </button>
               </div>
             </form>
@@ -526,6 +617,120 @@ export const Gallery: React.FC = () => {
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>{deletingId ? 'Deleting...' : 'Delete'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Media Preview / Video Player Modal */}
+      {selectedPreviewItem && (
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-4xl w-full overflow-hidden shadow-2xl flex flex-col max-h-[92vh]">
+            {/* Modal Header */}
+            <div className="p-3.5 sm:p-4 bg-slate-900/95 border-b border-slate-800 flex items-center justify-between text-white shrink-0">
+              <div className="flex items-center space-x-2">
+                <span className="text-xs font-bold px-2 py-0.5 rounded bg-blue-600/30 text-blue-400 border border-blue-500/30 uppercase tracking-wider">
+                  {selectedPreviewItem.category}
+                </span>
+                <span className="text-xs text-slate-400 flex items-center space-x-1">
+                  <MapPin className="w-3 h-3 text-blue-400" />
+                  <span>{selectedPreviewItem.location || 'Jaipur'}</span>
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                {selectedPreviewItem.mediaUrl && (
+                  <a
+                    href={formatImageUrl(selectedPreviewItem.mediaUrl)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors text-xs flex items-center space-x-1"
+                    title="Open original media URL in new tab"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setSelectedPreviewItem(null)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                  aria-label="Close media player"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Video Player or Image Showcase */}
+            <div className="flex-1 bg-black flex items-center justify-center min-h-[280px] sm:min-h-[460px] p-2 sm:p-4 overflow-hidden relative">
+              {selectedPreviewItem.mediaType === 'video' ? (
+                (() => {
+                  const url = selectedPreviewItem.mediaUrl || '';
+                  const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+                  if (ytMatch) {
+                    return (
+                      <div className="w-full aspect-video max-w-3xl rounded-xl overflow-hidden shadow-2xl bg-black">
+                        <iframe
+                          src={`https://www.youtube-nocookie.com/embed/${ytMatch[1]}?autoplay=1&rel=0`}
+                          title={selectedPreviewItem.title}
+                          className="w-full h-full border-0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                    );
+                  }
+                  const vimeoMatch = url.match(/vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/([^\/]*)\/videos\/|album\/(\d+)\/video\/|)(\d+)/);
+                  if (vimeoMatch) {
+                    return (
+                      <div className="w-full aspect-video max-w-3xl rounded-xl overflow-hidden shadow-2xl bg-black">
+                        <iframe
+                          src={`https://player.vimeo.com/video/${vimeoMatch[3]}?autoplay=1`}
+                          title={selectedPreviewItem.title}
+                          className="w-full h-full border-0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                    );
+                  }
+                  return (
+                    <video
+                      key={selectedPreviewItem.mediaUrl}
+                      src={formatImageUrl(selectedPreviewItem.mediaUrl)}
+                      controls
+                      autoPlay
+                      playsInline
+                      className="max-h-[68vh] max-w-full rounded-xl shadow-2xl bg-black"
+                    >
+                      Your browser does not support HTML5 video player.
+                    </video>
+                  );
+                })()
+              ) : (
+                <img
+                  src={formatImageUrl(selectedPreviewItem.mediaUrl)}
+                  alt={selectedPreviewItem.title}
+                  className="max-h-[68vh] max-w-full object-contain rounded-xl shadow-2xl"
+                />
+              )}
+            </div>
+
+            {/* Modal Footer with details */}
+            <div className="p-3.5 sm:p-4 bg-slate-900 border-t border-slate-800 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+              <div className="overflow-hidden">
+                <h3 className="text-sm font-bold text-white truncate">{selectedPreviewItem.title}</h3>
+                {(selectedPreviewItem.caption || selectedPreviewItem.projectName) && (
+                  <p className="text-xs text-slate-400 mt-0.5 truncate">
+                    {selectedPreviewItem.caption || selectedPreviewItem.projectName}
+                  </p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedPreviewItem(null)}
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold self-end sm:self-auto transition-colors cursor-pointer"
+              >
+                Close Player
               </button>
             </div>
           </div>
