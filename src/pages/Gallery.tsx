@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Trash2, Image, Play, MapPin, Filter, Check, AlertCircle, X, Upload } from 'lucide-react';
-import { galleryService, locationService } from '../services/api';
+import { galleryService, locationService, formatImageUrl } from '../services/api';
 import { GalleryItem, LocationItem } from '../types';
 
 export const Gallery: React.FC = () => {
@@ -85,18 +85,24 @@ export const Gallery: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!selectedFile && !mediaUrl.trim()) {
+      setErrorMessage('Please select a media file to upload or provide a valid media URL.');
+      return;
+    }
+
     setSubmitting(true);
     setErrorMessage(null);
 
     try {
       const formData = new FormData();
-      formData.append('title', title);
+      formData.append('title', title.trim());
       formData.append('category', category);
       formData.append('mediaType', mediaType);
       formData.append('location', location);
-      if (caption) formData.append('caption', caption);
-      if (projectName) formData.append('projectName', projectName);
-      if (mediaUrl) formData.append('mediaUrl', mediaUrl);
+      if (caption) formData.append('caption', caption.trim());
+      if (projectName) formData.append('projectName', projectName.trim());
+      if (mediaUrl) formData.append('mediaUrl', mediaUrl.trim());
       if (selectedFile) formData.append('media', selectedFile);
 
       await galleryService.create(formData);
@@ -111,7 +117,9 @@ export const Gallery: React.FC = () => {
       setSelectedFile(null);
       fetchItems();
     } catch (err: any) {
-      setErrorMessage(err.response?.data?.message || 'Error saving media item');
+      console.error('Gallery submit error:', err);
+      const serverMessage = err.response?.data?.message || err.message || 'Error saving media item';
+      setErrorMessage(serverMessage);
     } finally {
       setSubmitting(false);
     }
@@ -198,13 +206,25 @@ export const Gallery: React.FC = () => {
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
             {paginatedItems.map((item) => {
-              const src = item.mediaUrl.startsWith('http') ? item.mediaUrl : item.mediaUrl;
+              const src = formatImageUrl(item.mediaUrl);
+              const thumbSrc = item.thumbnailUrl ? formatImageUrl(item.thumbnailUrl) : '';
               return (
                 <div key={item._id} className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all group">
-                  <div className="relative aspect-[4/3] bg-slate-100 overflow-hidden">
+                  <div className="relative aspect-[4/3] bg-slate-900 overflow-hidden">
                     {item.mediaType === 'video' ? (
-                      <div className="w-full h-full flex items-center justify-center bg-slate-900 text-white">
-                        <Play className="w-8 h-8 text-blue-400" />
+                      <div className="w-full h-full flex items-center justify-center relative">
+                        {thumbSrc && (
+                          <img
+                            src={thumbSrc}
+                            alt=""
+                            className="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-300"
+                          />
+                        )}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-11 h-11 rounded-full bg-blue-600/90 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                            <Play className="w-5 h-5 fill-current ml-0.5" />
+                          </div>
+                        </div>
                       </div>
                     ) : (
                       <img src={src} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
@@ -422,9 +442,18 @@ export const Gallery: React.FC = () => {
                     </span>
                     <input
                       type="file"
-                      accept={mediaType === 'video' ? 'video/*' : 'image/*'}
+                      accept={mediaType === 'video' ? 'video/*' : 'image/*,video/*'}
                       onChange={(e) => {
-                        if (e.target.files && e.target.files[0]) setSelectedFile(e.target.files[0]);
+                        if (e.target.files && e.target.files[0]) {
+                          const file = e.target.files[0];
+                          setSelectedFile(file);
+                          if (file.type.startsWith('video/') || /\.(mp4|mov|webm|mkv|avi|m4v|3gp)$/i.test(file.name)) {
+                            setMediaType('video');
+                            if (category === 'Project Photos') {
+                              setCategory('Videos');
+                            }
+                          }
+                        }
                       }}
                       className="hidden"
                     />
@@ -446,16 +475,20 @@ export const Gallery: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-medium"
+                  disabled={submitting}
+                  className="px-4 py-2 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-medium disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors"
+                  className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-xs font-semibold shadow-xs transition-colors flex items-center space-x-2"
                 >
-                  {submitting ? 'Saving...' : 'Add to Gallery'}
+                  {submitting && (
+                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  )}
+                  <span>{submitting ? 'Uploading & Processing...' : 'Add to Gallery'}</span>
                 </button>
               </div>
             </form>

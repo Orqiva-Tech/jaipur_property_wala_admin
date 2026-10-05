@@ -186,7 +186,8 @@ export const galleryService = {
     return api.get('/gallery', { params });
   },
   create: (formData: FormData) => api.post('/gallery', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 300000 // 5 minutes for video uploads
   }),
   delete: (id: string) => api.delete(`/gallery/${id}`)
 };
