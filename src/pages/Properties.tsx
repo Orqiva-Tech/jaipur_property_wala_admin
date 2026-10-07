@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, Search, X, Check, Building2, Filter, AlertCircle, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
-import { propertyService, locationService, formatImageUrl } from '../services/api';
-import { Property, LocationItem } from '../types';
+import { propertyService, locationService, adminService, formatImageUrl } from '../services/api';
+import { Property, LocationItem, WebsiteSettings } from '../types';
 
 export const Properties: React.FC = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [locations, setLocations] = useState<LocationItem[]>([]);
+  const [settings, setSettings] = useState<WebsiteSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedCityTab, setSelectedCityTab] = useState('All');
@@ -177,13 +178,50 @@ export const Properties: React.FC = () => {
     }
   };
 
+  const fetchSettingsData = async () => {
+    try {
+      const res = await adminService.getSettings();
+      if (res.data?.data) {
+        setSettings(res.data.data);
+      }
+    } catch (err) {
+      console.error('Error loading settings in Properties', err);
+    }
+  };
+
   useEffect(() => {
     fetchLocations();
+    fetchSettingsData();
   }, []);
 
   useEffect(() => {
     fetchProperties();
   }, [search, selectedCityTab]);
+
+  const getTownshipBadge = (propId: string) => {
+    const isCustom = settings?.townshipShowcase?.mode === 'custom';
+    if (isCustom) {
+      const selected = settings?.townshipShowcase?.selectedProperties || [];
+      const idx = selected.findIndex((item: any) => (typeof item === 'object' && item !== null ? item._id : item) === propId);
+      if (idx !== -1) {
+        return (
+          <span className="text-[10px] bg-blue-50 text-blue-700 border border-blue-200 font-bold px-2 py-0.5 rounded-full block w-max shadow-2xs mt-1">
+            ⭐ Card #{idx + 1} ({idx === 0 ? 'Left' : idx === 1 ? 'Center' : 'Right'})
+          </span>
+        );
+      }
+    } else {
+      const recentIdx = properties.slice(0, 3).findIndex(p => p._id === propId);
+      if (recentIdx !== -1) {
+        return (
+          <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold px-2 py-0.5 rounded-full block w-max shadow-2xs mt-1">
+            🔄 Auto Card #{recentIdx + 1}
+          </span>
+        );
+      }
+    }
+    return null;
+  };
 
   const openCreateModal = () => {
     setEditingId(null);
@@ -486,14 +524,15 @@ export const Properties: React.FC = () => {
                         {p.status}
                       </span>
                     </td>
-                    <td className="p-4">
+                    <td className="p-4 space-y-1">
                       {p.featured ? (
-                        <span className="text-[10px] bg-amber-50 text-amber-700 border border-amber-200 font-semibold px-2 py-0.5 rounded-full">
+                        <span className="text-[10px] bg-amber-50 text-amber-700 border border-amber-200 font-semibold px-2 py-0.5 rounded-full block w-max">
                           ★ Featured
                         </span>
                       ) : (
-                        <span className="text-[10px] text-slate-400">Standard</span>
+                        <span className="text-[10px] text-slate-400 block">Standard</span>
                       )}
+                      {getTownshipBadge(p._id)}
                     </td>
                     <td className="p-4 text-right space-x-1.5">
                       <button

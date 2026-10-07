@@ -1,7 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Save, CheckCircle2, Phone, MapPin, Mail, Upload, Loader2, Share2, KeyRound, Lock, Eye, EyeOff, AlertCircle, Image as ImageIcon, Video, Sparkles, Sliders, Award, Plus, Trash2 } from 'lucide-react';
+import { Save, CheckCircle2, Phone, MapPin, Mail, Upload, Loader2, Share2, KeyRound, Lock, Eye, EyeOff, AlertCircle, Image as ImageIcon, Video, Sparkles, Sliders, Award, Plus, Trash2, Building2, ArrowLeft, ArrowRight, RefreshCw, Star } from 'lucide-react';
 import { adminService, propertyService, formatImageUrl } from '../services/api';
-import { WebsiteSettings } from '../types';
+import { WebsiteSettings, Property } from '../types';
+
+const defaultTownshipShowcase = {
+  mode: 'recent' as const,
+  selectedProperties: [] as (Property | string)[],
+  badge: 'Signature Plotted Developments',
+  title: 'Ongoing & Ready-to-Build Townships',
+  subtitle: 'Explore prime projects with ready possession, underground utilities, and direct highway connectivity.'
+};
 
 const defaultAboutSection = {
   badge: 'About Our Company',
@@ -30,6 +38,7 @@ const defaultAboutSection = {
 
 export const Settings: React.FC = () => {
   const [settings, setSettings] = useState<WebsiteSettings | null>(null);
+  const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -66,8 +75,12 @@ export const Settings: React.FC = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await adminService.getSettings();
+        const [res, propsRes] = await Promise.all([
+          adminService.getSettings(),
+          propertyService.getAll({ limit: 100 })
+        ]);
         setSettings(res.data.data);
+        setAllProperties(propsRes.data.data || []);
       } catch (err) {
         console.error('Error fetching settings', err);
       } finally {
@@ -293,6 +306,61 @@ export const Settings: React.FC = () => {
     updateAboutField('points', points);
   };
 
+  // Township Showcase (3 Cards) Helpers
+  const updateTownshipField = (field: string, value: any) => {
+    if (!settings) return;
+    const cur = settings.townshipShowcase || defaultTownshipShowcase;
+    setSettings({
+      ...settings,
+      townshipShowcase: {
+        ...cur,
+        [field]: value
+      }
+    });
+  };
+
+  const setTownshipSlotProperty = (slotIndex: number, propertyId: string) => {
+    if (!settings) return;
+    const cur = settings.townshipShowcase || defaultTownshipShowcase;
+    const rawList = [...(cur.selectedProperties || [])];
+    while (rawList.length < 3) rawList.push('');
+    if (!propertyId) {
+      rawList[slotIndex] = '';
+    } else {
+      const found = allProperties.find(p => p._id === propertyId);
+      rawList[slotIndex] = found || propertyId;
+    }
+    updateTownshipField('selectedProperties', rawList);
+  };
+
+  const clearTownshipSlot = (slotIndex: number) => {
+    setTownshipSlotProperty(slotIndex, '');
+  };
+
+  const swapTownshipSlots = (idxA: number, idxB: number) => {
+    if (!settings) return;
+    const cur = settings.townshipShowcase || defaultTownshipShowcase;
+    const list = [...(cur.selectedProperties || [])];
+    while (list.length < 3) list.push('');
+    const temp = list[idxA];
+    list[idxA] = list[idxB];
+    list[idxB] = temp;
+    updateTownshipField('selectedProperties', list);
+  };
+
+  const preloadRecentIntoCustom = () => {
+    if (!settings || allProperties.length === 0) return;
+    const first3 = allProperties.slice(0, 3);
+    setSettings({
+      ...settings,
+      townshipShowcase: {
+        ...(settings.townshipShowcase || defaultTownshipShowcase),
+        mode: 'custom',
+        selectedProperties: first3
+      }
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!settings) return;
@@ -300,7 +368,19 @@ export const Settings: React.FC = () => {
     setSuccess(false);
 
     try {
-      await adminService.updateSettings(settings);
+      const payload = {
+        ...settings,
+        townshipShowcase: settings.townshipShowcase ? {
+          ...settings.townshipShowcase,
+          selectedProperties: (settings.townshipShowcase.selectedProperties || [])
+            .map((item: any) => (typeof item === 'object' && item !== null && item._id ? item._id : item))
+            .filter((id: any) => typeof id === 'string' && id.trim() !== '')
+        } : undefined
+      };
+      const res = await adminService.updateSettings(payload);
+      if (res.data?.data) {
+        setSettings(res.data.data);
+      }
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
@@ -830,6 +910,318 @@ export const Settings: React.FC = () => {
                 <Save className="w-3.5 h-3.5" />
                 <span>{saving ? 'Saving...' : 'Save Hero Settings'}</span>
               </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Homepage Township Showcase (Signature Plotted Developments - 3 Cards) */}
+        <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-xs space-y-5">
+          <div className="border-b border-slate-200 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center space-x-2">
+                <Building2 className="w-4 h-4 text-emerald-600" />
+                <h3 className="text-sm font-bold text-slate-900">
+                  Homepage Township Showcase (3 Cards Section)
+                </h3>
+              </div>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Control the 3 prominent cards displayed under "Signature Plotted Developments - Ongoing & Ready-to-Build Townships" on the public homepage.
+              </p>
+            </div>
+
+            {/* Mode Switcher Tabs */}
+            <div className="inline-flex p-1 bg-slate-100 rounded-lg border border-slate-200 self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => updateTownshipField('mode', 'recent')}
+                className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center space-x-1.5 transition-all ${
+                  (settings.townshipShowcase?.mode || 'recent') === 'recent'
+                    ? 'bg-white text-emerald-700 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Automatic (Latest 3)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => updateTownshipField('mode', 'custom')}
+                className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center space-x-1.5 transition-all ${
+                  settings.townshipShowcase?.mode === 'custom'
+                    ? 'bg-white text-blue-700 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Star className="w-3.5 h-3.5 text-amber-500" />
+                <span>Custom Selection (3 Cards)</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Section Info Banner */}
+          {(settings.townshipShowcase?.mode === 'custom') ? (
+            <div className="p-3.5 bg-blue-50/70 border border-blue-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-start space-x-2.5">
+                <Sparkles className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-xs font-bold text-blue-900">Custom Manual Selection Mode is Active</h4>
+                  <p className="text-[11px] text-blue-700">
+                    The homepage will display the 3 specific properties you choose below in exact order (Card #1 Left, Card #2 Center, Card #3 Right).
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => updateTownshipField('mode', 'recent')}
+                className="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold shrink-0 shadow-2xs"
+              >
+                Reset to Automatic Mode
+              </button>
+            </div>
+          ) : (
+            <div className="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-start space-x-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-xs font-bold text-emerald-900">Automatic Mode is Active</h4>
+                  <p className="text-[11px] text-emerald-700">
+                    The public homepage automatically displays the 3 most recently added properties. Want to override them with custom properties?
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={preloadRecentIntoCustom}
+                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shrink-0 shadow-xs flex items-center space-x-1.5"
+              >
+                <Star className="w-3.5 h-3.5 text-amber-300" />
+                <span>Choose Custom 3 Cards</span>
+              </button>
+            </div>
+          )}
+
+          {/* If Recent Mode: Preview what's currently showing */}
+          {(settings.townshipShowcase?.mode || 'recent') === 'recent' && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Currently Featured on Homepage (Automatic Latest 3):
+                </span>
+                <span className="text-[11px] text-slate-400">
+                  Updates dynamically as new properties are added
+                </span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {allProperties.slice(0, 3).map((prop, idx) => (
+                  <div
+                    key={prop._id || idx}
+                    className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 space-y-2.5"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                        Position #{idx + 1} ({idx === 0 ? 'Left' : idx === 1 ? 'Center' : 'Right'})
+                      </span>
+                      <span className="text-[10px] font-semibold text-slate-500">
+                        {prop.status}
+                      </span>
+                    </div>
+                    <div className="h-32 rounded-lg overflow-hidden bg-slate-200 border border-slate-200 relative">
+                      <img
+                        src={formatImageUrl(prop.images?.[0])}
+                        alt={prop.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <span className="absolute bottom-1.5 left-1.5 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded backdrop-blur-xs">
+                        {prop.location?.area || prop.location?.city || 'Jaipur'}
+                      </span>
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900 truncate" title={prop.title}>
+                        {prop.title}
+                      </h4>
+                      <p className="text-[11px] text-slate-500 truncate">
+                        {prop.tagline || prop.priceDisplay || 'Prime Location'}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* If Custom Mode: 3 Slot Selectors */}
+          {settings.townshipShowcase?.mode === 'custom' && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[0, 1, 2].map((slotIdx) => {
+                  const rawItem = settings.townshipShowcase?.selectedProperties?.[slotIdx];
+                  const selectedId = typeof rawItem === 'object' && rawItem !== null ? rawItem._id : (typeof rawItem === 'string' ? rawItem : '');
+                  const currentProp = allProperties.find(p => p._id === selectedId) || (typeof rawItem === 'object' && rawItem !== null ? rawItem as Property : null);
+                  const slotLabel = slotIdx === 0 ? 'Card #1 (Left)' : slotIdx === 1 ? 'Card #2 (Center)' : 'Card #3 (Right)';
+
+                  return (
+                    <div
+                      key={slotIdx}
+                      className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-3 flex flex-col justify-between"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-900 flex items-center space-x-1.5">
+                            <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center justify-center">
+                              {slotIdx + 1}
+                            </span>
+                            <span>{slotLabel}</span>
+                          </span>
+                          {currentProp && (
+                            <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
+                              ✓ Selected
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Dropdown Selector */}
+                        <div>
+                          <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                            Choose Property
+                          </label>
+                          <select
+                            value={selectedId || ''}
+                            onChange={(e) => setTownshipSlotProperty(slotIdx, e.target.value)}
+                            className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 rounded-lg text-xs text-slate-900 focus:outline-none shadow-xs"
+                          >
+                            <option value="">-- Select Property for Slot #{slotIdx + 1} --</option>
+                            {allProperties.map((p) => (
+                              <option key={p._id} value={p._id}>
+                                {p.title} ({p.location?.area || p.location?.city}) - {p.status}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Live Card Preview */}
+                        {currentProp ? (
+                          <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs space-y-2">
+                            <div className="h-32 rounded-md overflow-hidden relative bg-slate-100 border border-slate-200">
+                              <img
+                                src={formatImageUrl(currentProp.images?.[0])}
+                                alt={currentProp.title}
+                                className="w-full h-full object-cover"
+                              />
+                              <span className="absolute top-2 left-2 bg-amber-500 text-slate-950 text-[9px] font-bold uppercase px-2 py-0.5 rounded shadow-xs">
+                                {currentProp.location?.area || currentProp.location?.city || 'Jaipur'}
+                              </span>
+                              {currentProp.status && (
+                                <span className="absolute top-2 right-2 bg-slate-900/80 text-amber-300 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded">
+                                  {currentProp.status}
+                                </span>
+                              )}
+                            </div>
+                            <div>
+                              <h5 className="text-xs font-bold text-slate-900 truncate" title={currentProp.title}>
+                                {currentProp.title}
+                              </h5>
+                              <p className="text-[11px] text-amber-700 font-medium truncate">
+                                {currentProp.tagline || (currentProp.location?.area ? `${currentProp.location.area}, ${currentProp.location.city}` : 'Prime Corridor')}
+                              </p>
+                              <p className="text-[10px] text-slate-500 line-clamp-2 mt-1">
+                                {currentProp.description || 'Verified JDA approved development with prime connectivity.'}
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="p-6 bg-white rounded-lg border border-dashed border-slate-300 text-center space-y-1">
+                            <p className="text-xs font-medium text-slate-600">No property selected</p>
+                            <p className="text-[11px] text-slate-400">
+                              Slot will automatically display the latest available property from your catalog.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Card Reordering & Clear Actions */}
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-200/80 gap-2">
+                        <div className="flex items-center space-x-1.5">
+                          {slotIdx > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => swapTownshipSlots(slotIdx, slotIdx - 1)}
+                              className="px-2 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded text-[11px] font-medium transition-colors"
+                              title="Move Left"
+                            >
+                              ← Move Left
+                            </button>
+                          )}
+                          {slotIdx < 2 && (
+                            <button
+                              type="button"
+                              onClick={() => swapTownshipSlots(slotIdx, slotIdx + 1)}
+                              className="px-2 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded text-[11px] font-medium transition-colors"
+                              title="Move Right"
+                            >
+                              Move Right →
+                            </button>
+                          )}
+                        </div>
+
+                        {currentProp && (
+                          <button
+                            type="button"
+                            onClick={() => clearTownshipSlot(slotIdx)}
+                            className="px-2 py-1 text-red-600 hover:bg-red-50 rounded text-[11px] font-medium transition-colors"
+                          >
+                            Clear Slot
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Section Titles Customization */}
+          <div className="pt-3 border-t border-slate-100 space-y-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
+              Section Heading & Headline Text (Public Website)
+            </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                  Top Gold Tagline Badge
+                </label>
+                <input
+                  type="text"
+                  value={settings.townshipShowcase?.badge || 'Signature Plotted Developments'}
+                  onChange={(e) => updateTownshipField('badge', e.target.value)}
+                  placeholder="Signature Plotted Developments"
+                  className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 rounded-lg text-xs text-slate-900 shadow-xs"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                  Main Section Title
+                </label>
+                <input
+                  type="text"
+                  value={settings.townshipShowcase?.title || 'Ongoing & Ready-to-Build Townships'}
+                  onChange={(e) => updateTownshipField('title', e.target.value)}
+                  placeholder="Ongoing & Ready-to-Build Townships"
+                  className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 rounded-lg text-xs text-slate-900 shadow-xs"
+                />
+              </div>
+              <div className="sm:col-span-2 lg:col-span-1">
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                  Sub-description Text
+                </label>
+                <input
+                  type="text"
+                  value={settings.townshipShowcase?.subtitle || 'Explore prime projects with ready possession, underground utilities, and direct highway connectivity.'}
+                  onChange={(e) => updateTownshipField('subtitle', e.target.value)}
+                  placeholder="Explore prime projects..."
+                  className="w-full p-2.5 bg-white border border-slate-300 focus:border-blue-500 rounded-lg text-xs text-slate-900 shadow-xs"
+                />
+              </div>
             </div>
           </div>
         </div>

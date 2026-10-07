@@ -184,6 +184,15 @@ export interface WebsiteSettings {
     youtube: string;
     linkedin: string;
   };
+  townshipShowcase?: TownshipShowcaseSettings;
+}
+
+export interface TownshipShowcaseSettings {
+  mode: 'recent' | 'custom';
+  selectedProperties?: (Property | string)[];
+  badge?: string;
+  title?: string;
+  subtitle?: string;
 }
 
 export interface AdminUser {
