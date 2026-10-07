@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Edit2, Trash2, Search, X, Check, Building2, Filter, AlertCircle, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, X, Check, Building2, Filter, AlertCircle, Upload, Image as ImageIcon, Loader2, Star, Sparkles, RefreshCw, Sliders } from 'lucide-react';
 import { propertyService, locationService, adminService, formatImageUrl } from '../services/api';
 import { Property, LocationItem, WebsiteSettings } from '../types';
 
@@ -13,6 +13,8 @@ export const Properties: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isShowcaseModalOpen, setIsShowcaseModalOpen] = useState(false);
+  const [savingShowcase, setSavingShowcase] = useState(false);
 
   const itemsPerPage = 8;
   const totalPages = Math.ceil(properties.length / itemsPerPage) || 1;
@@ -97,6 +99,7 @@ export const Properties: React.FC = () => {
     bankLoanAvailable: true,
     amenities: 'Gated Colony, 24x7 CCTV, Wide Bitumen Roads, Water Tank, Park',
     featured: false,
+    showcaseSlot: '',
     existingImages: [] as string[]
   };
 
@@ -198,6 +201,95 @@ export const Properties: React.FC = () => {
     fetchProperties();
   }, [search, selectedCityTab]);
 
+  const getSlotIndexForProp = (propId: string) => {
+    const selected = settings?.townshipShowcase?.selectedProperties || [];
+    return selected.findIndex((item: any) => (typeof item === 'object' && item !== null ? item._id : item) === propId);
+  };
+
+  const pinPropertyToSlot = async (propId: string, slotIndex: number) => {
+    setSavingShowcase(true);
+    try {
+      const currentSelected = settings?.townshipShowcase?.selectedProperties?.map((p: any) => typeof p === 'object' && p !== null ? p._id : p) || [];
+      const newSelected = [...currentSelected];
+      while (newSelected.length < 3) newSelected.push('');
+      for (let i = 0; i < 3; i++) {
+        if (newSelected[i] === propId && i !== slotIndex) {
+          newSelected[i] = '';
+        }
+      }
+      newSelected[slotIndex] = propId;
+      const updatedShowcase = {
+        ...(settings?.townshipShowcase || { badge: 'Signature Plotted Developments', title: 'Ongoing & Ready-to-Build Townships', subtitle: 'Explore master-planned gated communities with world-class infrastructure and high-yield returns.' }),
+        mode: 'custom' as const,
+        selectedProperties: newSelected
+      };
+      const res = await adminService.updateSettings({
+        townshipShowcase: updatedShowcase
+      });
+      if (res.data?.data) {
+        setSettings(res.data.data);
+      }
+      setSuccessMessage(`Pinned to Card #${slotIndex + 1} (${slotIndex === 0 ? 'Left' : slotIndex === 1 ? 'Center' : 'Right'}) successfully! Homepage 3 Cards set to Custom mode.`);
+      setTimeout(() => setSuccessMessage(null), 3500);
+    } catch (err: any) {
+      console.error('Error updating showcase slot', err);
+      setErrorMessage('Failed to pin property to homepage.');
+      setTimeout(() => setErrorMessage(null), 3500);
+    } finally {
+      setSavingShowcase(false);
+    }
+  };
+
+  const removePropertyFromShowcase = async (propId: string) => {
+    setSavingShowcase(true);
+    try {
+      const currentSelected = settings?.townshipShowcase?.selectedProperties?.map((p: any) => typeof p === 'object' && p !== null ? p._id : p) || [];
+      const newSelected = currentSelected.map((id: string) => id === propId ? '' : id);
+      const updatedShowcase = {
+        ...(settings?.townshipShowcase || { badge: 'Signature Plotted Developments', title: 'Ongoing & Ready-to-Build Townships', subtitle: 'Explore master-planned gated communities with world-class infrastructure and high-yield returns.' }),
+        selectedProperties: newSelected
+      };
+      const res = await adminService.updateSettings({
+        townshipShowcase: updatedShowcase
+      });
+      if (res.data?.data) {
+        setSettings(res.data.data);
+      }
+      setSuccessMessage(`Removed property from Homepage 3 Cards.`);
+      setTimeout(() => setSuccessMessage(null), 3500);
+    } catch (err: any) {
+      console.error('Error removing property from showcase', err);
+      setErrorMessage('Failed to update homepage cards.');
+      setTimeout(() => setErrorMessage(null), 3500);
+    } finally {
+      setSavingShowcase(false);
+    }
+  };
+
+  const setTownshipMode = async (mode: 'recent' | 'custom') => {
+    setSavingShowcase(true);
+    try {
+      const updatedShowcase = {
+        ...(settings?.townshipShowcase || { badge: 'Signature Plotted Developments', title: 'Ongoing & Ready-to-Build Townships', subtitle: 'Explore master-planned gated communities with world-class infrastructure and high-yield returns.', selectedProperties: [] }),
+        mode
+      };
+      const res = await adminService.updateSettings({
+        townshipShowcase: updatedShowcase
+      });
+      if (res.data?.data) {
+        setSettings(res.data.data);
+      }
+      setSuccessMessage(mode === 'recent' ? 'Homepage 3 Cards switched to Automatic (Latest 3) mode!' : 'Homepage 3 Cards switched to Custom Curated mode!');
+      setTimeout(() => setSuccessMessage(null), 3500);
+    } catch (err: any) {
+      console.error('Error updating showcase mode', err);
+      setErrorMessage('Failed to update showcase mode.');
+      setTimeout(() => setErrorMessage(null), 3500);
+    } finally {
+      setSavingShowcase(false);
+    }
+  };
+
   const getTownshipBadge = (propId: string) => {
     const isCustom = settings?.townshipShowcase?.mode === 'custom';
     if (isCustom) {
@@ -231,6 +323,7 @@ export const Properties: React.FC = () => {
   };
 
   const openEditModal = (property: Property) => {
+    const currentSlot = getSlotIndexForProp(property._id);
     setEditingId(property._id);
     setFormData({
       title: property.title,
@@ -268,6 +361,7 @@ export const Properties: React.FC = () => {
       bankLoanAvailable: property.bankLoanAvailable,
       amenities: property.amenities ? property.amenities.join(', ') : '',
       featured: property.featured,
+      showcaseSlot: currentSlot !== -1 ? String(currentSlot) : '',
       existingImages: property.images || []
     });
     setErrorMessage(null);
@@ -301,7 +395,7 @@ export const Properties: React.FC = () => {
     try {
       const data = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
-        if (key === 'area' || key === 'address' || key === 'city' || key === 'mapEmbedUrl' || key === 'brochureUrl' || key === 'imageHighlights' || key === 'nearbyLocations' || key === 'existingImages') return;
+        if (key === 'area' || key === 'address' || key === 'city' || key === 'mapEmbedUrl' || key === 'brochureUrl' || key === 'imageHighlights' || key === 'nearbyLocations' || key === 'existingImages' || key === 'showcaseSlot') return;
         data.append(key, String(value));
       });
 
@@ -318,12 +412,25 @@ export const Properties: React.FC = () => {
       data.append('nearbyLocations', JSON.stringify(formData.nearbyLocations));
       data.append('existingImages', JSON.stringify(formData.existingImages));
 
+      let savedPropId = editingId;
       if (editingId) {
         await propertyService.update(editingId, data);
         setSuccessMessage('Property updated successfully!');
       } else {
-        await propertyService.create(data);
+        const createRes = await propertyService.create(data);
+        savedPropId = createRes.data?.data?._id;
         setSuccessMessage('New property created successfully!');
+      }
+
+      // Sync Homepage 3 Cards showcase slot
+      if (savedPropId) {
+        const currentSlot = getSlotIndexForProp(savedPropId);
+        const desiredSlot = formData.showcaseSlot;
+        if (desiredSlot !== '' && Number(desiredSlot) !== currentSlot) {
+          await pinPropertyToSlot(savedPropId, Number(desiredSlot));
+        } else if (desiredSlot === '' && currentSlot !== -1) {
+          await removePropertyFromShowcase(savedPropId);
+        }
       }
 
       setIsModalOpen(false);
@@ -385,13 +492,27 @@ export const Properties: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={openCreateModal}
-          className="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors flex items-center justify-center space-x-2 shadow-xs shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add New Property</span>
-        </button>
+        <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
+          <button
+            onClick={() => setIsShowcaseModalOpen(true)}
+            className="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-semibold text-xs transition-colors flex items-center justify-center space-x-2 shadow-xs shrink-0"
+            title="Configure the 3 featured township cards shown on the public Homepage"
+          >
+            <Star className="w-4 h-4 text-amber-600 fill-amber-500" />
+            <span>Homepage 3 Cards Showcase</span>
+            <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-200/70 text-amber-900 uppercase">
+              {settings?.townshipShowcase?.mode === 'custom' ? 'Custom' : 'Auto'}
+            </span>
+          </button>
+
+          <button
+            onClick={openCreateModal}
+            className="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors flex items-center justify-center space-x-2 shadow-xs shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add New Property</span>
+          </button>
+        </div>
       </div>
 
       {/* Multi-City Filter Tabs & Search Bar */}
@@ -533,6 +654,30 @@ export const Properties: React.FC = () => {
                         <span className="text-[10px] text-slate-400 block">Standard</span>
                       )}
                       {getTownshipBadge(p._id)}
+                      <div className="pt-1">
+                        <select
+                          value={(() => {
+                            const idx = getSlotIndexForProp(p._id);
+                            return idx !== -1 ? String(idx) : '';
+                          })()}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val === '') {
+                              removePropertyFromShowcase(p._id);
+                            } else {
+                              pinPropertyToSlot(p._id, parseInt(val));
+                            }
+                          }}
+                          disabled={savingShowcase}
+                          className="text-[10px] bg-slate-50 hover:bg-white border border-slate-300 rounded px-1.5 py-0.5 text-slate-700 focus:outline-none focus:ring-1 focus:ring-amber-500 font-medium cursor-pointer"
+                          title="Pin or unpin this property to one of the 3 cards on homepage"
+                        >
+                          <option value="">Pin to Homepage Card...</option>
+                          <option value="0">⭐ Card #1 (Left)</option>
+                          <option value="1">⭐ Card #2 (Center)</option>
+                          <option value="2">⭐ Card #3 (Right)</option>
+                        </select>
+                      </div>
                     </td>
                     <td className="p-4 text-right space-x-1.5">
                       <button
@@ -793,6 +938,34 @@ export const Properties: React.FC = () => {
                   />
                   <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                 </label>
+              </div>
+
+              {/* Homepage 3 Cards Feature Slot */}
+              <div className="p-4 bg-gradient-to-r from-amber-50/80 to-orange-50/70 border border-amber-200/90 rounded-xl space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Star className="w-4 h-4 text-amber-600 fill-amber-500" />
+                    <span className="text-xs font-bold text-amber-950">Homepage 3 Cards Townships Showcase</span>
+                  </div>
+                  <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-amber-200/70 text-amber-900">
+                    Frontpage Spotlight
+                  </span>
+                </div>
+                <p className="text-[11px] text-amber-800">
+                  Select which card position this property occupies on the public Homepage under "Ongoing & Ready-to-Build Townships".
+                </p>
+                <div className="pt-1">
+                  <select
+                    value={formData.showcaseSlot}
+                    onChange={(e) => setFormData({ ...formData, showcaseSlot: e.target.value })}
+                    className="w-full p-2.5 bg-white border border-amber-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-lg text-xs font-semibold text-slate-900 focus:outline-none shadow-xs"
+                  >
+                    <option value="">Do not pin (Standard inventory listing)</option>
+                    <option value="0">⭐ Card #1 — Left Position on Homepage</option>
+                    <option value="1">⭐ Card #2 — Center Position on Homepage</option>
+                    <option value="2">⭐ Card #3 — Right Position on Homepage</option>
+                  </select>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1319,6 +1492,210 @@ export const Properties: React.FC = () => {
                 className="px-5 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-semibold shadow-xs transition-colors"
               >
                 {deletingId === deleteConfirmProperty._id ? 'Deleting...' : 'Yes, Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Homepage 3 Cards Showcase Modal */}
+      {isShowcaseModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
+          <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
+            {/* Modal Header */}
+            <div className="p-4 sm:p-5 bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-transparent border-b border-slate-200 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center text-amber-700">
+                  <Star className="w-5 h-5 fill-amber-500 text-amber-600" />
+                </div>
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 rounded border border-amber-300">
+                      Frontpage Townships Showcase
+                    </span>
+                    <span className="text-xs text-slate-500">Section F</span>
+                  </div>
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900 mt-0.5">
+                    Select 3 Township Cards for Homepage
+                  </h3>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsShowcaseModalOpen(false)}
+                className="text-slate-400 hover:text-slate-700 p-2 rounded-lg hover:bg-slate-100 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-4 sm:p-6 overflow-y-auto space-y-6">
+              {/* Mode Selection */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setTownshipMode('recent')}
+                  disabled={savingShowcase}
+                  className={`p-4 rounded-xl border text-left transition-all ${
+                    settings?.townshipShowcase?.mode !== 'custom'
+                      ? 'border-blue-500 bg-blue-50/70 shadow-xs ring-2 ring-blue-500/20'
+                      : 'border-slate-200 bg-white hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-bold text-slate-900 flex items-center">
+                      <RefreshCw className="w-3.5 h-3.5 mr-1.5 text-blue-600" />
+                      Automatic Mode (Latest 3 Added)
+                    </span>
+                    {settings?.townshipShowcase?.mode !== 'custom' && (
+                      <span className="text-[10px] bg-blue-600 text-white font-bold px-2 py-0.5 rounded-full">Active</span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-600">
+                    Always displays the 3 most recently created properties automatically. As you add new properties, they appear first.
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setTownshipMode('custom')}
+                  disabled={savingShowcase}
+                  className={`p-4 rounded-xl border text-left transition-all ${
+                    settings?.townshipShowcase?.mode === 'custom'
+                      ? 'border-amber-500 bg-amber-50/70 shadow-xs ring-2 ring-amber-500/20'
+                      : 'border-slate-200 bg-white hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-bold text-slate-900 flex items-center">
+                      <Sliders className="w-3.5 h-3.5 mr-1.5 text-amber-600" />
+                      Custom Handpicked Mode
+                    </span>
+                    {settings?.townshipShowcase?.mode === 'custom' && (
+                      <span className="text-[10px] bg-amber-600 text-white font-bold px-2 py-0.5 rounded-full">Active</span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-600">
+                    Handpick exactly which 3 properties appear on the homepage (Left, Center, and Right card slots).
+                  </p>
+                </button>
+              </div>
+
+              {/* 3 Slots */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                    Homepage 3 Cards Slot Assignment
+                  </h4>
+                  <span className="text-[11px] text-slate-500">
+                    {settings?.townshipShowcase?.mode === 'custom'
+                      ? 'Select properties for each slot below'
+                      : 'Showing current slots (switches to Custom once saved)'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[0, 1, 2].map((slotIdx) => {
+                    const currentSelected = settings?.townshipShowcase?.selectedProperties || [];
+                    const currentItem = currentSelected[slotIdx];
+                    const selectedPropId = typeof currentItem === 'object' && currentItem !== null ? currentItem._id : (currentItem || '');
+                    const matchedProp = properties.find(p => p._id === selectedPropId);
+                    const positionLabel = slotIdx === 0 ? 'Card #1 (Left)' : slotIdx === 1 ? 'Card #2 (Center)' : 'Card #3 (Right)';
+
+                    return (
+                      <div
+                        key={slotIdx}
+                        className="p-4 bg-slate-50/80 rounded-xl border border-slate-200 flex flex-col justify-between space-y-3 shadow-xs"
+                      >
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-slate-900 flex items-center space-x-1.5">
+                              <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center text-[10px] font-bold">
+                                {slotIdx + 1}
+                              </span>
+                              <span>{positionLabel}</span>
+                            </span>
+                            {selectedPropId && (
+                              <button
+                                type="button"
+                                onClick={() => removePropertyFromShowcase(selectedPropId)}
+                                disabled={savingShowcase}
+                                className="text-[10px] text-red-600 hover:text-red-800 font-semibold underline"
+                              >
+                                Clear
+                              </button>
+                            )}
+                          </div>
+
+                          <select
+                            value={selectedPropId}
+                            onChange={(e) => {
+                              const newId = e.target.value;
+                              if (newId) {
+                                pinPropertyToSlot(newId, slotIdx);
+                              } else if (selectedPropId) {
+                                removePropertyFromShowcase(selectedPropId);
+                              }
+                            }}
+                            disabled={savingShowcase}
+                            className="w-full p-2 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-xs"
+                          >
+                            <option value="">-- Select Property for Slot #{slotIdx + 1} --</option>
+                            {properties.map((p) => (
+                              <option key={p._id} value={p._id}>
+                                {p.title} ({p.location?.city || 'Jaipur'})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Property Card Thumbnail Preview */}
+                        {matchedProp ? (
+                          <div className="bg-white rounded-lg p-2.5 border border-slate-200 space-y-2">
+                            <div className="relative aspect-video rounded overflow-hidden bg-slate-100">
+                              <img
+                                src={formatImageUrl(matchedProp.images?.[0] || defaultArchImages[0])}
+                                alt=""
+                                className="w-full h-full object-cover"
+                              />
+                              <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded font-medium">
+                                {matchedProp.location?.city} • {matchedProp.category}
+                              </span>
+                            </div>
+                            <div>
+                              <div className="text-xs font-bold text-slate-900 truncate" title={matchedProp.title}>
+                                {matchedProp.title}
+                              </div>
+                              <div className="text-[11px] text-amber-600 font-bold mt-0.5">
+                                {matchedProp.priceDisplay || (matchedProp.price ? `₹${(matchedProp.price / 100000).toFixed(2)} Lacs` : 'Price on Request')}
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="h-28 rounded-lg border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center p-3 text-slate-400">
+                            <ImageIcon className="w-6 h-6 mb-1 text-slate-300" />
+                            <span className="text-[11px]">No property assigned</span>
+                            <span className="text-[10px] text-slate-400">Select from dropdown above</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+              <span className="text-xs text-slate-500">
+                Any changes made take effect immediately on jaipurpropertywala.in
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsShowcaseModalOpen(false)}
+                className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs transition-colors"
+              >
+                Done / Close
               </button>
             </div>
           </div>
