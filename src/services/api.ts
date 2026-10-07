@@ -140,6 +140,73 @@ export const propertyService = {
 
 export const enquiryService = {
   create: (data: Record<string, any>) => api.post('/enquiries', data),
+  createAdmin: async (data: Record<string, any>) => {
+    try {
+      return await api.post('/enquiries/admin', data);
+    } catch (err: any) {
+      if (err.response?.status === 404) {
+        // Fallback for older backend versions
+        const fallbackRes = await api.post('/enquiries', data);
+        const leadId = fallbackRes.data?.data?.id || fallbackRes.data?.data?._id;
+        if (data.status && data.status !== 'New' && leadId) {
+          try {
+            await api.put(`/enquiries/${leadId}`, { status: data.status });
+          } catch (_) {}
+        }
+        if (data.initialNote && leadId) {
+          try {
+            await api.put(`/enquiries/${leadId}`, { note: data.initialNote });
+          } catch (_) {}
+        }
+        return fallbackRes;
+      }
+      throw err;
+    }
+  },
+  importLeads: async (leads: Array<Record<string, any>>) => {
+    try {
+      return await api.post('/enquiries/import', { leads });
+    } catch (err: any) {
+      if (err.response?.status === 404) {
+        // Fallback: batch import one by one
+        let imported = 0;
+        const errors: any[] = [];
+        for (const item of leads) {
+          try {
+            await enquiryService.createAdmin(item);
+            imported++;
+          } catch (e: any) {
+            errors.push({ lead: item, error: e.message });
+          }
+        }
+        return {
+          data: {
+            success: true,
+            count: imported,
+            message: `Successfully imported ${imported} leads.`,
+            skippedCount: errors.length
+          }
+        };
+      }
+      throw err;
+    }
+  },
+  downloadSampleCSV: () => {
+    const csvContent =
+      `Name,Phone,Email,Property,Status,Preferred Location,Budget,Message,Source\n` +
+      `"Rajesh Kumar","9829012345","rajesh@example.com","Southern Vista","New","Jagatpura, Jaipur","45 - 60 Lakhs","Interested in 200 sq yard villa","Direct Walk-in"\n` +
+      `"Pooja Sharma","9829123456","pooja@example.com","General Consultation","Contacted","Mansarovar","Any","Looking for 3BHK luxury flat","Phone Call"\n` +
+      `"Vikram Singh","9829234567","vikram@example.com","Royal Greens","Site Visit Scheduled","Ajmer Road","60 - 80 Lakhs","Wants site visit this Sunday","Meta Ads"`;
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'leads-sample-template.csv');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+  },
   getAll: (params?: Record<string, any>) => api.get('/enquiries', { params }),
   getById: (id: string) => api.get(`/enquiries/${id}`),
   updateStatus: (id: string, data: { status?: string; note?: string }) => api.put(`/enquiries/${id}`, data),
